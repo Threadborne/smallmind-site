@@ -20,6 +20,24 @@
 
   --measure: 68ch;
   --gutter: clamp(1.25rem, 5vw, 4rem);
+
+  /* surfaces that differ between themes */
+  --surface:  #ffffff;   /* record strip, stamp, cards */
+  --hero-quiet: var(--slate);
+}
+
+/* ---------- dark mode (system preference) ---------- */
+@media (prefers-color-scheme: dark) {
+  :root {
+    --ink:      #ECEDEF;   /* text goes light */
+    --paper:    #0C0E13;   /* background goes near-black */
+    --purple:   #B45CE6;   /* a hair brighter so it doesn't vibrate on dark */
+    --aubergine:#2A1836;
+    --slate:    #8A97A5;   /* lifted for contrast on dark */
+    --rule:     #232833;   /* subtle dark divider */
+    --signal:   #E5645C;   /* FAIL red, lifted for dark legibility */
+    --surface:  #14171E;   /* cards sit just above the background */
+  }
 }
 
 * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -50,9 +68,15 @@ body {
   padding: 1.5rem 0; border-bottom: 1px solid var(--rule);
 }
 .brand { display: flex; align-items: center; gap: 0.7rem; text-decoration: none; color: var(--ink); }
-/* logo mark */
+/* logo mark - swaps variant by theme so it stays visible on dark */
 .brand__mark {
   width: 30px; height: 30px; flex: none; display: block;
+  background-image: var(--logo-icon);
+  background-size: contain; background-repeat: no-repeat; background-position: center;
+}
+:root { --logo-icon: url('assets/logo/icon-primary.svg'); }
+@media (prefers-color-scheme: dark) {
+  :root { --logo-icon: url('assets/logo/icon-reversed.svg'); }
 }
 .brand__word {
   font-family: var(--mono); font-weight: 500;
@@ -93,7 +117,7 @@ a { color: var(--purple); text-decoration-thickness: 1px; text-underline-offset:
 /* ---------- the record strip (signature element) ---------- */
 .record {
   margin-top: 3rem; border: 1px solid var(--rule); border-radius: 10px;
-  background: #fff; overflow: hidden;
+  background: var(--surface); overflow: hidden;
 }
 .record__row {
   display: grid; grid-template-columns: 1fr; gap: 0;
@@ -167,14 +191,14 @@ h2.section-title { font-size: clamp(1.5rem, 3.5vw, 2.1rem); font-weight: 700; ma
 .paper article p { margin-top: 1rem; }
 .paper article strong { font-weight: 600; }
 .paper article em { color: var(--ink); }
-.paper article code { font-family: var(--mono); font-size: 0.88em; background: #fff; border: 1px solid var(--rule); border-radius: 4px; padding: 0.05em 0.35em; word-break: break-word; }
+.paper article code { font-family: var(--mono); font-size: 0.88em; background: var(--surface); border: 1px solid var(--rule); border-radius: 4px; padding: 0.05em 0.35em; word-break: break-word; }
 .paper hr { border: 0; border-top: 1px solid var(--rule); margin: 2.5rem 0; }
 .paper .ledger-ref { font-family: var(--mono); font-size: 0.82em; color: var(--slate); }
 
 /* fingerprint stamp on paper pages */
 .stamp {
   margin: 2.5rem 0; padding: 1.25rem 1.4rem; border: 1px solid var(--rule);
-  border-left: 3px solid var(--purple); border-radius: 8px; background: #fff;
+  border-left: 3px solid var(--purple); border-radius: 8px; background: var(--surface);
 }
 .stamp__k { font-family: var(--mono); font-size: 0.7rem; letter-spacing: 0.12em; text-transform: uppercase; color: var(--slate); }
 .stamp__v { font-family: var(--mono); font-size: 0.8rem; color: var(--ink); margin-top: 0.4rem; word-break: break-all; }
