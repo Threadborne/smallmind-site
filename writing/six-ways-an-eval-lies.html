@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Six Ways an Eval Lies, Small Mind</title>
+<meta name="description" content="Six structural defects that shipped past a preregistered evaluation process, and the domain-blind checks that catch them before a run is burned.">
+<link rel="canonical" href="https://smallmind.net/writing/six-ways-an-eval-lies.html">
+<meta property="og:title" content="Six Ways an Eval Lies">
+<meta property="og:description" content="Six structural defects that survive preregistration, and the domain-blind checks that catch them.">
+<meta property="og:url" content="https://smallmind.net/writing/six-ways-an-eval-lies.html">
+<meta property="og:type" content="article">
+<link rel="icon" href="../assets/logo/favicon.ico" sizes="any">
+<link rel="icon" type="image/png" sizes="32x32" href="../assets/logo/favicon-32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="../assets/logo/favicon-16.png">
+<link rel="apple-touch-icon" href="../assets/logo/apple-touch-icon.png">
+<link rel="stylesheet" href="../style.css">
+</head>
+<body>
+
+<header class="wrap masthead">
+  <a class="brand" href="/">
+    <img class="brand__mark" src="../assets/logo/icon-primary.svg" alt="" width="30" height="30">
+    <span class="brand__word"><span>SMALL</span> <b>MIND</b></span>
+  </a>
+  <nav class="nav">
+    <a href="/writing.html">Writing</a>
+    <a href="/founder.html">Founder</a>
+  </nav>
+</header>
+
+<main class="wrap paper">
+
+  <p class="eyebrow">Evaluation integrity · 2026</p>
+  <h1>Six Ways an Eval Lies</h1>
+  <p class="paper__sub">Six structural defects that shipped past a preregistered evaluation process, and the domain-blind checks that catch them before a run is burned.</p>
+  <p class="paper__by">Michael Smith · Small Mind LLC</p>
+
+  <article>
+
+    <p>The most rigorous evaluation number my process ever produced was wrong, and the component that made it wrong was working exactly as designed.</p>
+
+    <p>A measurement pipeline scored a mechanism at 100%: 50,688 successes out of 50,688 trials, across all eleven evaluation positions. The scorer that aggregated results for the report converted two of those positions to 0.0, because a separate combined control had failed and the scorer was written fail-closed: when in doubt, punish the metric. The report said 81.8%. On that basis, the record briefly stated that a mechanism had failed which had, in fact, gone eleven for eleven.</p>
+
+    <p>Nothing malfunctioned. The conservatism was deliberate and defensible as <em>verdict</em> logic. But it had quietly crossed a line: it rewrote a <strong>measurement</strong>. The number that reached the decision point had a different author than the number the experiment produced. The two-line function that did it (<code>stage_2_gc_signed_history_dual_scorer_0_3.py:156-157</code>) had passed every review, because every line of it was correct. The defect wasn't in any line. It was in what the component was <em>allowed to touch</em>.</p>
+
+    <p>That incident is one of six. This paper is about the class they belong to.</p>
+
+    <h2>The claim</h2>
+    <p>A passing eval is a claim: <em>this test detected the effect it was built to detect.</em> A surprising fraction of evals cannot support that claim, not because the test logic is wrong, but because the construction cannot produce the effect being measured. A gate demanding an effect its construction can't supply returns a green light with no information in it.</p>
+    <p>These defects are invisible to ordinary review because they are structural, not semantic. Reading the code for correctness does not find them. Domain expertise does not find them. And they are detectable: cheaply, mechanically, without knowing what the experiment is about, and mostly <em>before anything runs</em>.</p>
+    <p>I know because I run an evaluation process considerably stricter than anything I've seen in production LLM work, and all six either shipped past it or were caught in the act by a structural rule. Never, not once, by someone reading the experiment and thinking hard about it. If they ship past preregistration, they are shipping past your spreadsheet.</p>
+
+    <h2>The setup</h2>
+    <p>The project is a personal research program in agent architecture. The details don't matter for this paper (that's the point), but the process does: thresholds derived blind and sealed before any confirmatory run; every procedure frozen and fingerprinted with SHA-256 before the data it judges exists; an append-only research ledger recording every ruling with its rationale, including every abort; preserved failures, never relabeled; preparation, development, and confirmation cohorts firewalled, with burned cohorts staying burned.</p>
+    <p>The system was designed and built in a multi-agent workflow: LLM agents in defined implementation and adversarial-review roles, with me as scientific lead arbitrating every ruling. I state that plainly for two reasons. First, the ledger names the roles anyway; the receipts publish the structure whether the paper mentions it or not. Second, it strengthens the thesis: these defects survived human review and machine review simultaneously. They are not caught by intelligence. They are caught by structure, or not at all.</p>
+    <p>One caveat before the list, stated here so nobody has to point it out for me: this is one project, self-graded, and several of these were found late rather than predicted. The checks are the contribution. Judge them on whether they'd fire on your pipeline, not on mine.</p>
+
+    <div class="stamp">
+      <div class="stamp__k">Receipts · research ledger</div>
+      <div class="stamp__v">SHA-256 94d8f4defcbdf9804f1ac6cf35b9cc37844305ec6b80dd01d960e13d3c496bc5</div>
+      <p style="margin-top:0.75rem;font-size:0.9rem;color:var(--slate);">Every incident below cites its entry in the append-only ledger, published in full with six runnable fixtures at <a href="https://github.com/Threadborne/eval-integrity">github.com/Threadborne/eval-integrity</a>.</p>
+    </div>
+
+    <h2>1. The metric that changed hands</h2>
+    <p><strong>What happened:</strong> the incident above. Raw measurement: 50,688/50,688 = 100% across eleven positions. Reported: 0.8181818181818182, because a fail-closed scorer overwrote two positions' raw 1.0 values with 0.0 when an unrelated combined control failed. The terminal FAIL verdict itself was legitimate; two other gates genuinely missed their frozen minima and that verdict stands. But the <em>attribution</em> was false: the record said a mechanism failed that had succeeded completely. <span class="ledger-ref">(Ledger: signed-history terminal dual test, attribution correction, 2026-08-14.)</span></p>
+    <p><strong>Why review missed it:</strong> the overwrite wasn't a bug to catch. It was a design choice that looked like rigor, and conservatism is the one direction nobody audits.</p>
+    <p><strong>The check:</strong> measurement immutability, asserted at every boundary. Producers emit values; every downstream consumer may fail a verdict but may never modify, zero, clip, or substitute a producer's number; the report carries the raw value alongside any verdict that punishes it. Reducers force verdicts, reducers never rewrite history.</p>
+
+    <h2>2. The gate that was asserted, and the control that was a constant</h2>
+    <p><strong>What happened:</strong> an audit found that several structural and anti-gaming gates were emitted as literal <code>true</code> values, never computed by anything. Separately, a control arm named <code>wording-driven</code> emitted the same fixed 0.5 prediction as the constant-baseline arm: a second null wearing a detector's name, structurally incapable of catching the wording leak it existed to catch. <span class="ledger-ref">(Ledger: child-1/child-2 validation-provenance correction, 2026-08-14.)</span></p>
+    <p><strong>Why review missed it:</strong> the gates appeared in the results with the right names and values. The control arm existed, ran, and produced output. Review verifies that controls are present. It almost never verifies that they are <em>live</em>: that their outcome is causally connected to the thing they claim to check.</p>
+    <p><strong>The check:</strong> inject deliberately broken controls and prove the execution chain detects each as a failure, through the actual producer-to-reducer path. A result artifact may not emit a literal <code>true</code> as a substitute for evaluation. If breaking the control doesn't change the report, the control was never in the loop.</p>
+
+    <h2>3. Identical bytes, different labels</h2>
+    <p><strong>What happened:</strong> a gate was specified to derive minimum-evidence thresholds empirically from a 61,440-record corpus. Before any derivation ran, an identifiability check found the corpus contained only 13 distinct permitted-input byte shapes, and every one occurred in the false population. All 4,992 retained-eligible records had byte-identical counterparts labeled false. No function of the permitted input could separate the classes. The claim was non-identifiable, provably, at the byte level, before spending a single run. <span class="ledger-ref">(Ledger: child-3 minimum-evidence boundary reclassified as structural policy, 2026-08-15.)</span></p>
+    <p><strong>Why review missed it:</strong> every human-readable layer of the two populations differed: names, documentation, intent, labels. The only thing identical was the thing nobody reads: the resolved input bytes after all preprocessing.</p>
+    <p><strong>The check:</strong> hash every condition's resolved inputs after all preprocessing. If records with different labels share identical input bytes, stop: no test that could ever run will separate them.</p>
+
+    <h2>4. The split you can read off the input</h2>
+    <p><strong>What happened:</strong> a train/held-out corpus built to test generalization had a structural feature confounded with the split, visible in the permitted input view. An estimator could have scored perfectly on "generalization" by learning to recognize which split it was in. Caught at adequacy-check time, before any estimator existed, by the standing rule that section 3's five predecessors had paid for. The generation procedure was superseded with a balanced design in which split membership is mathematically unrecoverable. <span class="ledger-ref">(Ledger: Stage 3 generation procedure, split-balanced family-law supersession, 2026-08-16.)</span></p>
+    <p>The fix had a price, which the ledger records instead of hiding: balancing the splits traded away the corpus's authority to test extrapolation to unseen structures. Fixing a leak often costs a claim you thought you had. The honest move is writing the trade down.</p>
+    <p><strong>The check:</strong> compute whether condition membership is recoverable from permitted inputs, by a multiplicity audit or a trivial classifier. If membership is recoverable above chance, every downstream success is contaminated by recognition. Cost: minutes. Domain knowledge required: none.</p>
+
+    <h2>5. The analysis authored after the answer key</h2>
+    <p><strong>What happened, twice:</strong> a scoring run reached preflight with sealed thresholds derived and no fingerprinted scorer in existence. Building one then would have meant authoring the analysis while the answer key was visible: fold realization, whitening, neighbor ties, support bounds, aggregation, verdict precedence, each defensible, collectively enough freedom to change which axes pass. The process refused, both times, recording each as a preserved abort. <span class="ledger-ref">(Ledger: Gate 3 scoring preflight abort, and Repair-A preflight abort, both 2026-08-09.)</span></p>
+    <p><strong>Why this class survives review:</strong> everyone knows not to move a threshold after seeing results. Almost nobody extends the rule to where the real freedom lives: the analysis pipeline itself. A threshold is one number. A scorer is a hundred small choices.</p>
+    <p><strong>The check:</strong> provenance on the whole analysis path, not just the threshold. The scorer's fingerprint must predate threshold visibility and data access; a timestamp proves the order.</p>
+
+    <h2>6. The failure that measured seven quintillionths</h2>
+    <p><strong>What happened:</strong> the first confirmatory protocol required exact serialized equality between a reproduction and a retained baseline. The run reproduced every substantive decision identically, and differed on one metric by approximately 6.94×10⁻¹⁸. Floating-point dust, orders of magnitude below anything that could matter. The frozen rule said exact equality. The result is recorded, permanently: Overall Phase A: FAIL. It was never relabeled. A successor protocol was written in the open, changing the rule itself to a defined tolerance, fingerprinted, and run fresh, it passed 8/8, while the original FAIL stands untouched. <span class="ledger-ref">(Ledger: Protocol 1.0.0 and 1.1.0.)</span></p>
+    <p><strong>Why this is the section about reruns even though nothing was laundered:</strong> because this is what the alternative looks like. The universal move is "that's obviously float noise, re-run it, report the pass." The failure vanishes, the rule silently becomes whatever the rerun satisfied, and the record now contains only successes. The deleted failures are the exact size of your inflated confidence.</p>
+    <p><strong>The check:</strong> a run registry opened before outcomes exist, exclusion rules committed in advance, and one bright line: if the rule was wrong, fix the rule in public and leave the failure standing.</p>
+
+    <hr>
+
+    <h2>The pattern</h2>
+    <p>Count what the six checks require: an immutability assertion, a broken-control fixture, a byte-level hash comparison, a multiplicity audit or two-minute classifier, a fingerprint timestamp, a registry. Not one requires knowing what the experiment is about. That is why these defects survive review. Semantic review inspects meaning. These defects live below meaning, in the shape of the experiment.</p>
+    <p>They are falsifiers, not certificates. Passing all six does not make an eval valid. Failing one makes its claim invalid, before you've spent the compute, and before you've spent a week believing the number.</p>
+    <p>One more thing the record shows that a list of checks can't: the arc. The early defects were caught late, by accident or audit. Each one produced a standing structural rule. The later defects were caught by those rules at specification time, before a run was burned. The checks compound. The eleventh preflight abort is dramatically cheaper than the first postmortem.</p>
+
+    <h2>What to do Monday</h2>
+    <p>Before the next eval run you trust: write down, in one sentence, the effect the test claims to detect and what counts as detecting it, then freeze the entire analysis path before results exist. Hash the resolved condition inputs after preprocessing; if different labels share identical bytes, stop. Break every control on purpose; anything that can't go red is decoration. Check whether split or condition membership is recoverable from what the system can see. Assert that no downstream component can rewrite an upstream measurement. Open the run registry before the first attempt, and when a rule turns out wrong, amend it in public and leave the failure standing.</p>
+    <p>Total cost: an afternoon. Against it, weigh the last decision your team shipped on a green light, and whether anyone ever checked what the light was wired to.</p>
+
+    <hr>
+
+    <p style="color:var(--slate);"><strong>Limits.</strong> One project. Self-graded. Several of these were found by late audit, not foresight. The checks generalize; the evidence that they matter beyond this project is, so far, an argument plus one very consistent ledger. If your pipeline passes all six, I'd genuinely like to hear about it. If it doesn't, I'd like to hear about that more.</p>
+
+    <div class="stamp">
+      <div class="stamp__k">Full ledger + six runnable fixtures</div>
+      <div class="stamp__v"><a href="https://github.com/Threadborne/eval-integrity">github.com/Threadborne/eval-integrity</a></div>
+    </div>
+
+  </article>
+
+</main>
+
+<footer class="wrap">
+  <div class="foot">
+    <div class="foot__brand">SMALL MIND, © 2026</div>
+    <div class="foot__links">
+      <a href="/writing.html">Writing</a>
+      <a href="/founder.html">Founder</a>
+      <a href="https://github.com/Threadborne/eval-integrity">Receipts</a>
+    </div>
+  </div>
+</footer>
+
+</body>
+</html>
