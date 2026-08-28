@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Fail-Closed by Construction, Small Mind</title>
+<meta name="description" content="230 passes of a policy-constrained, provenance-first LLM agent runtime: reliability, failure taxonomy, the cost of never forgetting, and an authority boundary that held.">
+<link rel="canonical" href="https://smallmind.net/writing/fail-closed-by-construction.html">
+<meta property="og:title" content="Fail-Closed by Construction">
+<meta property="og:description" content="An operational record of a provenance-first agent runtime over 230 passes. The headline is not a benchmark; it is a set of held invariants.">
+<meta property="og:url" content="https://smallmind.net/writing/fail-closed-by-construction.html">
+<meta property="og:type" content="article">
+<link rel="icon" href="../assets/logo/favicon.ico" sizes="any">
+<link rel="icon" type="image/png" sizes="32x32" href="../assets/logo/favicon-32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="../assets/logo/favicon-16.png">
+<link rel="apple-touch-icon" href="../assets/logo/apple-touch-icon.png">
+<link rel="stylesheet" href="../style.css">
+</head>
+<body>
+
+<header class="wrap masthead">
+  <a class="brand" href="/">
+    <span class="brand__mark" role="img" aria-label="Small Mind"></span>
+    <span class="brand__word"><span>SMALL</span> <b>MIND</b></span>
+  </a>
+  <nav class="nav">
+    <a href="/writing.html">Writing</a>
+    <a href="/founder.html">Founder</a>
+  </nav>
+</header>
+
+<main class="wrap paper">
+
+  <p class="eyebrow">Agent systems · 2026</p>
+  <h1>Fail-Closed by Construction</h1>
+  <p class="paper__sub">An operational record of a policy-constrained, provenance-first LLM agent runtime over 230 passes. The headline is not a benchmark score; it is a set of held invariants.</p>
+  <p class="paper__by">Michael Smith · Small Mind LLC</p>
+
+  <article>
+
+    <p>Most published agent systems answer the question <em>can the model do the task?</em> This project asked a different one: what does it take for a stateless frontier model, called repeatedly over months, to accumulate a <strong>trustworthy record</strong> — one in which every decision is attributable, every piece of evidence has provenance, no failure silently corrupts state, and no capability exists to act on the world without a human's recorded authorization?</p>
+
+    <p>The question matters because the failure modes of long-horizon agents are not primarily reasoning failures. They are <strong>custody failures</strong>: evidence contaminated by model-generated text, state mutated by a crashed pass, context silently truncated, actions taken under authority no one granted. The runtime described here — the Long Horizon project, whose live workload is called the Opportunity Steward — was built on the premise that these properties must be enforced by the wrapper, not requested of the model. It was then run long enough, 230 human-initiated passes, for the enforcement to be tested by reality rather than by unit tests.</p>
+
+    <p>This is an experience report. Equally important is what it does not claim, and the boundaries are drawn from the project's own frozen claim-status record: nothing here establishes agent character or interiority, no causal effect of memory or feedback condition, and no external validation, buyer sponsorship, or commercial result. Those statements appear again, precisely, in the Limits section.</p>
+
+    <div class="stamp">
+      <div class="stamp__k">Receipts · frozen extraction, 2026-08-28</div>
+      <div class="stamp__v">Evidence manifest (5,232 files) SHA-256 3ac03159823c625b356bd081ee8292ab7afcdcc2ab2263b293315835c90aeb78</div>
+      <p style="margin-top:0.75rem;font-size:0.9rem;color:var(--slate);">Every figure below derives from a frozen, derived extraction of the complete project record: pass-level data, an 84-entry append-only ledger, thesis-revision and source catalogs, authority records, and complete git histories. Sanitized portions available on request; the live runtime repository is not published.</p>
+    </div>
+
+    <h2>The system</h2>
+
+    <p>The unit of execution is a <strong>pass</strong>: one atomic invocation of a frontier model (requested model <code>gpt-5.6-sol</code> at maximum reasoning effort; see Limits on attestation) by a local wrapper that owns the entire lifecycle — packet assembly from the persistent store, invocation under a hard timeout, structured-output validation, commit. Passes are human-initiated; there is no scheduler and the system is not autonomous. A pass either commits completely or fails completely: any validation error, malformed output, resource-limit violation, or process fault aborts with no partial writes. Failures are loud and preserved.</p>
+
+    <p>The Git-backed store separates three custody classes that never mix. <strong>Evidence</strong> is externally captured source material, admitted only through a verification gate and stored as immutable source-version records with SHA-256 fingerprints, capture timestamps, publisher attribution, and the exact claim each source supports. <strong>Model-created work</strong> — theses, revisions, research notes — is always attributable to the pass that produced it, and can never be promoted into evidence. <strong>Private measurement</strong> is wrapper-owned and invisible to the model, so the system cannot grade its own homework. An append-only ledger records every architectural ruling with rationale and artifact fingerprints; entries are never edited or removed.</p>
+
+    <p>External effects — contacting anyone, spending money, executing a pilot, delivering work — are not gated behind approval; they are <strong>absent from the runtime</strong>. The action space is research within bounded search limits, portfolio revision, generating a validation proposal, and returning no artifact. Declining and producing nothing are first-class outcomes. Human authority is itself recorded: activations, eligibility adjudications, and validation authorizations are written as hash-chained authority records naming the human, the channel, the command payload hash, and the exact artifact fingerprints authorized, against a frozen prohibited-domain surface.</p>
+
+    <p>Within an epoch, the prompt packet contains the <strong>complete decision history</strong> — nothing silently truncated or summarized away. When the packet approaches the provider context ceiling, the run halts fail-closed; continuing requires an explicitly approved <strong>epoch transition</strong>: a manifest-bound cutover that fingerprints the complete prior record, carries the portfolio state forward, and begins a new epoch with auditable lineage. One such transition occurred in production, at global pass 162→163.</p>
+
+    <p>The workload exercising all of this is deliberately adversarial to it: an open-ended venture-research application that maintains a portfolio of theses against a small commercial envelope (≤5 people, 12 months to first revenue, $100K build capital). The workload <em>wants</em> to fetch, claim, and act — precisely the impulses the custody and authority mechanisms exist to constrain.</p>
+
+    <h2>The record</h2>
+
+    <h3>Reliability</h3>
+    <p>Across 186 attempted Opportunity Steward passes: 154 successes (82.8%), 32 failures. Epoch v1 (passes 44–162): 119 attempted, 93 successes. Epoch v2 (passes 163–230): 67 attempted, 61 successes — 91.0%, reflecting fixes accumulated during v1. Longest unbroken success streak: 41 passes. Successful passes consumed 68.3M input tokens (41.2M cached) and produced 618K output tokens, 390K of them reasoning tokens. Figures are reported per-epoch because the wrapper was repaired throughout the run; see Limits.</p>
+
+    <h3>What actually breaks</h3>
+    <p>The 32 failures fall into 25 distinct groups, and the taxonomy is the finding: the dominant classes are interface and schema faults — unexpected stderr from the model CLI, the model beginning web search before completing required machine-readable output, search-limit violations, malformed or duplicate-key JSONL, stdin truncation, wrapper assertion faults. Model reasoning quality is essentially absent from the list. Two properties held across all 32: every failure was fail-closed (no partial state was ever committed), and every failure is preserved in the record rather than retried into invisibility. The hard engineering of long-horizon agents in this configuration is process-boundary hygiene — parsers, stream handling, structured-output enforcement — not prompting.</p>
+
+    <h3>The cost of never forgetting</h3>
+    <p>Complete-history retention has a measurable price. In epoch v1, packets reached a median of 563,848 bytes (~148K input tokens; p95 ~275K tokens; maximum 1,028,495 bytes) before the ceiling forced the epoch transition. Epoch v2, with packet-composition changes, ran at a median of 512,040 bytes and ended at 709,398 bytes — 201,922 tokens — at pass 230. The epoch mechanism is the architecture's answer to this curve: retention bounded not by silent truncation but by explicit, auditable generational cutover.</p>
+
+    <h3>The admission funnel</h3>
+    <p>Research passes issued 552 web searches and made 307 verification attempts, from which 184 source versions were admitted as durable evidence; 120 candidates were rejected at the gate, 3 were duplicates, and 5 research runs ended with zero admissions. An admission rate of roughly 60% of verification attempts — with entire runs permitted to admit nothing — is the funnel operating as designed: the store's evidentiary standard, not the model's enthusiasm, decides what enters.</p>
+
+    <h3>What the workload produced</h3>
+    <p>Across 27 accepted thesis revisions, the agent explored eight thesis families and retired seven on incumbent evidence it gathered itself — an agent whose most common substantive act was concluding its own ideas were already taken. The surviving candidate, independent derived-memory deletion verification for enterprise AI-agent platforms, rests on vendor-documented behavior: AWS documents that deleting a short-term AgentCore event does not remove structured information already derived into long-term memory, and Oracle documents an analogous boundary. The run's final artifact is the project's first validation request: a fully specified 100-canary deletion-residue protocol with success, failure, ambiguity, and kill criteria, a 40-active-hour cap, and a $1,000 budget — produced by the agent and parked as <em>awaiting external authorization</em>, because executing it is outside the runtime's authority. External deliveries across the entire run: zero.</p>
+
+    <hr>
+
+    <h2>A pilot observation, quarantined</h2>
+    <p>An earlier 42-pass phase on a matched task pair produced one observation worth carrying forward, with its evidentiary status stated plainly: passes 31–42 are a quarantined diagnostic engineering sample, not a controlled experiment. The tasks were mismatched, retrieval was accidentally asymmetric between arms, and arms were not randomized.</p>
+    <p>The observation: on a mechanically scored RAG-reconstruction task, pass 31 scored 72/100 cold. Passes 32–36 — which could see the prior attempt but not its score — returned <strong>byte-identical output five passes running</strong> (identical tree SHA-256 across all five). A companion task that accidentally received no memory of its prior attempts instead cycled between incompatible designs. Pass 37 made a semantically meaningless type-annotation change, demonstrating that exact-duplicate detection does not catch trivial novelty.</p>
+    <p>The defensible hypothesis is narrow: the amount of <em>outcome</em> feedback available to a stateless model across passes may causally affect repetition, cycling, and objective progress. Memory of action without memory of outcome froze the system; memory of neither caused cycling. A preregistered five-arm comparison — no memory, action memory only, duplicate-only feedback, ordinal feedback, full diagnostics, randomized, replicated across a frontier model and a local ~35B model — has been designed and has not been run. No effect is claimed.</p>
+
+    <h2>Adjacent systems</h2>
+    <p>Durable-execution frameworks (Temporal, DBOS, Restate, Inngest, and first-party cloud offerings) provide crash-recovery and checkpointing for agent workflows, and identity vendors are building delegation-lineage audit for agent actions. This runtime overlaps those layers but differs in emphasis: custody-class separation between evidence and model output, admission gating with per-source provenance, decline as a first-class outcome, and an authority model in which external effect is structurally absent rather than approval-gated. A clean-room port of these patterns onto a standard durable-execution substrate is planned as a separate public implementation.</p>
+
+    <h2>Limits</h2>
+    <p><strong>Single system, single operator.</strong> One runtime, one workload, one human authority; nothing generalizes beyond existence proof. <strong>Backend attestation.</strong> The runtime requests <code>gpt-5.6-sol</code>; no resolved attestation of what backend served each pass exists, so model identity is reported as requested, not verified. <strong>Implementation drift.</strong> The wrapper improved throughout the run; cross-epoch comparisons conflate architecture with accumulated fixes. <strong>No causal claims</strong> — the pilot sample is quarantined and the confirmatory experiment is unrun. <strong>No commercial claims</strong> — no external validation has executed, no sponsorship or purchase exists, no revenue or product-market fit has been measured. <strong>Self-reported record</strong> — the dataset is generated by the system under study and extracted by its author; the append-only ledger, the SHA-256 manifest, and complete git histories are the audit surface offered in mitigation. <strong>No claims about character or interiority.</strong> The project's original philosophical question remains unanswered by this record, and nothing in it should be read otherwise.</p>
+
+    <h2>What the record shows</h2>
+    <p>Run long enough, an agent runtime's most informative outputs are its failure log, its admission ledger, and its refusals. This record's headline is a set of held invariants: 230 passes without a custody violation, 32 failures without a corrupted state, one context-ceiling crisis resolved by auditable generational cutover rather than silent truncation, and a final artifact in which the system, having found the one thesis its research could not kill, wrote the experiment that would test it and stopped at the boundary of its authority to wait for a human. Fail-closed, provenance-first, authority-excluded design is not free — the token curve above is its price tag — but this record is evidence that it is operable for months on a live workload, by a single operator, without a research lab behind it.</p>
+
+    <hr>
+
+    <p style="color:var(--slate);"><strong>Assistance note.</strong> Portions of the analysis pipeline and this manuscript were prepared with AI assistance; all claims were verified against the frozen project record by the author.</p>
+
+    <div class="stamp">
+      <div class="stamp__k">Frozen extraction · 2026-08-28</div>
+      <div class="stamp__v">Manifest SHA-256 3ac03159823c625b356bd081ee8292ab7afcdcc2ab2263b293315835c90aeb78 · 5,232 files · 504 MB</div>
+    </div>
+
+  </article>
+
+</main>
+
+<footer class="wrap">
+  <div class="foot">
+    <div class="foot__brand">SMALL MIND, © 2026</div>
+    <div class="foot__links">
+      <a href="/writing.html">Writing</a>
+      <a href="/founder.html">Founder</a>
+      <a href="https://github.com/Threadborne/eval-integrity">Receipts</a>
+    </div>
+  </div>
+</footer>
+
+</body>
+</html>
