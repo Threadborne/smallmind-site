@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>The Number Moved, the Model Didn't, Small Mind</title>
+<meta name="description" content="A sleep-stage classifier, and six methodological decisions that each move the headline number while only one of them moves the model.">
+<link rel="canonical" href="https://smallmind.net/writing/the-number-moved.html">
+<meta property="og:title" content="The Number Moved, the Model Didn't">
+<meta property="og:description" content="A sleep-stage classifier, and six decisions that could have made it lie. Eleven points of accuracy from one preprocessing flag, and none of it dishonest.">
+<meta property="og:url" content="https://smallmind.net/writing/the-number-moved.html">
+<meta property="og:type" content="article">
+<link rel="icon" href="../assets/logo/favicon.ico" sizes="any">
+<link rel="icon" type="image/png" sizes="32x32" href="../assets/logo/favicon-32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="../assets/logo/favicon-16.png">
+<link rel="apple-touch-icon" href="../assets/logo/apple-touch-icon.png">
+<link rel="stylesheet" href="../style.css">
+<style>
+  /* paper-local: results tables, matched to the site's rule/mono system */
+  .paper article table {
+    width: 100%; border-collapse: collapse; margin: 1.5rem 0;
+    font-family: var(--mono); font-size: 0.8rem;
+  }
+  .paper article th, .paper article td {
+    text-align: left; padding: 0.5rem 0.75rem; border-bottom: 1px solid var(--rule);
+    white-space: nowrap;
+  }
+  .paper article th {
+    color: var(--slate); font-weight: 500; letter-spacing: 0.04em;
+    text-transform: uppercase; font-size: 0.7rem;
+  }
+  .paper article td strong { color: var(--purple); font-weight: 600; }
+  .paper article .tbl-wrap { overflow-x: auto; }
+</style>
+</head>
+<body>
+
+<header class="wrap masthead">
+  <a class="brand" href="/">
+    <span class="brand__mark" role="img" aria-label="Small Mind"></span>
+    <span class="brand__word"><span>SMALL</span> <b>MIND</b></span>
+  </a>
+  <nav class="nav">
+    <a href="/writing.html">Writing</a>
+    <a href="/founder.html">Founder</a>
+  </nav>
+</header>
+
+<main class="wrap paper">
+
+  <p class="eyebrow">Evaluation integrity · 2026</p>
+  <h1>The Number Moved, the Model Didn't</h1>
+  <p class="paper__sub">A sleep-stage classifier, and six decisions that could have made it lie.</p>
+  <p class="paper__by">Michael Smith · Small Mind LLC</p>
+
+  <article>
+
+    <p>Sleep staging is a well-trodden benchmark. You take a single EEG channel, cut it into 30-second epochs, and predict which of five stages a human scorer assigned: wake, N1, N2, N3, REM. The published literature on Sleep-EDF reports 82&ndash;85% accuracy. It is an ideal task for the question I actually care about, which is not "can I hit the number" but "what would I have to do to the evaluation to make the number mean nothing."</p>
+
+    <p>The answer, it turns out, is: very little, and none of it requires dishonesty. Every lever below is a defensible methodological choice. Several are standard practice. Each one moves the headline number, and only one of them moves the model.</p>
+
+    <p>This writeup reports a classical-feature baseline that reaches <strong>79.1% &plusmn; 5.7%</strong> accuracy (Cohen's kappa 0.707, macro-F1 0.687) under subject-wise leave-one-out cross-validation on the 20-subject Sleep-EDF Cassette subset. It also reports the same pipeline reaching <strong>90.4%</strong> with one preprocessing change that makes the model no better at its job &mdash; macro-F1 moves by 0.0002. Both numbers are real. Only one of them is honest, and the reason is the point of the article.</p>
+
+    <p>Every result below was produced twice, on two machines under different operating systems, and agreed to four decimal places in both the cropped and uncropped conditions.</p>
+
+    <h2>The setup</h2>
+    <p>Sleep-EDF Expanded, Sleep Cassette subset, subjects 00&ndash;19: 39 recordings, 20 subjects, two nights each except subject 13, who has one. Single channel, Fpz-Cz, sampled at 100 Hz. Labels remapped from R&amp;K to AASM five-class, with S3 and S4 merged into N3 and movement/unscored epochs dropped. After preprocessing: 42,307 epochs.</p>
+
+    <p>Class balance, as expected, is poor:</p>
+
+    <div class="tbl-wrap">
+    <table>
+      <thead><tr><th>Stage</th><th>Epochs</th><th>Share</th></tr></thead>
+      <tbody>
+        <tr><td>W</td><td>8,284</td><td>19.6%</td></tr>
+        <tr><td>N1</td><td>2,804</td><td>6.6%</td></tr>
+        <tr><td>N2</td><td>17,799</td><td>42.1%</td></tr>
+        <tr><td>N3</td><td>5,703</td><td>13.5%</td></tr>
+        <tr><td>REM</td><td>7,717</td><td>18.2%</td></tr>
+      </tbody>
+    </table>
+    </div>
+
+    <p>Features are classical and hand-built: log and relative band power in five bands via Welch PSD, five band ratios, spectral edge frequencies and spectral entropy, Hjorth mobility and complexity, and a handful of amplitude statistics. Twenty-six features per epoch. Classifiers are a random forest and a histogram gradient-boosting ensemble. No neural network appears anywhere in this article.</p>
+
+    <h2>Decision 1: the split, which is the one that matters</h2>
+    <p>Sleep Cassette filenames encode subject and night: <code>SC4&lt;ss&gt;&lt;n&gt;E0</code>. <code>SC4001E0</code> and <code>SC4002E0</code> are not two subjects. They are one person, sleeping twice.</p>
+    <p>Split on filename, or on record index, or with a plain shuffled k-fold, and one person's two nights land on opposite sides of the boundary. The model is then evaluated on a night from someone whose EEG it has already memorized &mdash; their electrode impedance, their amplitude scale, their spindle morphology. The number goes up. Nothing was learned.</p>
+    <p>The loader parses subject ID out of the filename, groups before splitting, and asserts twice: that the train and test subject sets have empty intersection, and that both nights of every subject fall on the same side. Those assertions run on every fold.</p>
+    <p>This is the failure that invalidates everything downstream, and it is invisible in the results. A leaked evaluation and a clean one produce output of identical shape.</p>
+
+    <h2>Decision 2: the crop, and what it is worth</h2>
+    <p>Sleep Cassette recordings run about 20 hours. The subject is wired up in the afternoon and unhooked the next morning, so the file contains many hours of lights-on wake at both ends. Nearly every published result crops this &mdash; typically to 30 minutes of wake on either side of the sleep period &mdash; and so does this one.</p>
+    <p>The justification is sound: lights-on wake is not the task. Sleep staging is.</p>
+    <p>But it is worth being precise about the size of the effect. Uncropped, the same 39 recordings yield 106,414 epochs, of which <strong>68.0% are wake</strong>. A classifier that ignores its input and always predicts "awake" scores 68.0%.</p>
+    <p>Running the identical pipeline on uncropped data, gradient boosting:</p>
+
+    <div class="tbl-wrap">
+    <table>
+      <thead><tr><th></th><th>Cropped</th><th>Uncropped</th><th>Change</th></tr></thead>
+      <tbody>
+        <tr><td>Accuracy</td><td>0.7912</td><td><strong>0.9043</strong></td><td><strong>+0.1131</strong></td></tr>
+        <tr><td>Fold std</td><td>0.0572</td><td>0.0251</td><td>&minus;0.0321</td></tr>
+        <tr><td>Cohen's kappa</td><td>0.7069</td><td>0.8021</td><td>+0.0952</td></tr>
+        <tr><td>Macro-F1</td><td>0.6866</td><td>0.6868</td><td><strong>+0.0002</strong></td></tr>
+        <tr><td>W F1</td><td>0.8150</td><td>0.9676</td><td>+0.1526</td></tr>
+        <tr><td>N1 F1</td><td>0.2690</td><td>0.2118</td><td>&minus;0.0572</td></tr>
+      </tbody>
+    </table>
+    </div>
+
+    <p>Accuracy gains 11.3 points. Macro-F1 gains two ten-thousandths. For the random forest, run identically, accuracy gains 11.2 points and macro-F1 <em>drops</em> by 0.0022.</p>
+    <p>The model did not improve. The denominator changed. Both numbers come from the same code with one flag flipped, and if I reported only the second one, every sentence in this article would still be true.</p>
+    <p>Three details are worth dwelling on, because they are what a careful reader would check and they all point the wrong way.</p>
+    <p><strong>Cohen's kappa is not a defense.</strong> Kappa exists specifically to correct for chance agreement under class imbalance. It rose 0.095. More robust than accuracy here; not immune.</p>
+    <p><strong>The variance improves too.</strong> Fold-to-fold standard deviation halves, from 0.057 to 0.025. The inflated number is also the more stable-looking one, so a reviewer checking for suspicious variance would find the uncropped result more trustworthy, not less.</p>
+    <p><strong>All of the gain is in one class.</strong> W's F1 climbs 0.153 while every other class is flat or worse. The classifier got better at identifying eight extra hours of a subject lying awake in a lab with the lights on, and that improvement is now 68% of the test set.</p>
+    <p>Macro-F1 is what catches this, and it catches it because it refuses to let a prevalent easy class vote twice.</p>
+
+    <h2>Decision 3: which subset, and who is in it</h2>
+    <p>The 82&ndash;85% figures in the literature are generally reported on this 20-subject subset, not on all 78 subjects in the full cassette set. Benchmarking against papers that used a different denominator is its own kind of lie, so the subset is chosen to match the claim.</p>
+    <p>Having chosen it, one property is worth stating plainly, because I did not know it until I checked the demographics file: <strong>the 20-subject subset is ages 25 to 34, median 28.</strong> The remaining 58 subjects are ages 50 to 101, median 67. The subset is not a random sample of the cohort. It is the young half, entirely.</p>
+    <p>So the benchmark everyone cites is a healthy-young-adult benchmark. Sleep architecture changes substantially with age &mdash; slow-wave sleep declines, arousals increase &mdash; and a model validated here has not been shown to generalize to the population that actually gets referred for sleep studies. That is not a flaw in the dataset. It is a flaw in how the number is usually described.</p>
+
+    <h2>Decision 4: gamma is not a band you have</h2>
+    <p>The data is sampled at 100 Hz. Nyquist is 50. Above roughly 35 Hz, a forehead electrode is reading jaw and scalp muscle, not cortex. A "gamma power" feature here is EMG contamination wearing a neuroscience label.</p>
+    <p>It is dropped. In its place: <strong>sigma, 12&ndash;16 Hz</strong> &mdash; the spindle band, which is the defining graphoelement of N2, which is 42% of the data. This is not a tuning choice. It is reading the sampling rate before choosing the features.</p>
+
+    <h2>Decision 5: normalization, disclosed</h2>
+    <p>Features are robust-z-scored within each recording, using only that recording's own median and interquartile range. This cancels per-subject amplitude and impedance offsets, and it is worth several points.</p>
+    <p>It is not cross-subject leakage &mdash; no test subject is scaled by statistics from the training set. It is, however, transductive within a recording: the test night's own epochs determine its scale. For offline staging, where the whole night is in hand, that is legitimate. For a real-time system it would not be. The distinction matters and is easy to leave unmentioned, so: it is mentioned. The <code>--no-norm</code> flag reproduces the pipeline without it.</p>
+
+    <h2>Decision 6: metrics fixed in advance, including the failure</h2>
+    <p>Before seeing any result, three metrics were fixed &mdash; accuracy, Cohen's kappa, and macro-F1 &mdash; along with an explicit prediction: that N1 would fail, with F1 in the 40&ndash;50 range, because N1 is rare, transitional, and has poor inter-rater agreement even among human scorers.</p>
+    <p>The direction was right. The number was not. <strong>N1 came in at F1 0.269</strong>, recall 21%. The prediction was off by roughly half.</p>
+    <p>That miss is reported here rather than quietly dropped, because a pre-registration that only appears when it succeeds is not a pre-registration.</p>
+
+    <hr>
+
+    <h2>Results</h2>
+    <p>Subject-wise leave-one-subject-out, 20 folds, both models:</p>
+
+    <div class="tbl-wrap">
+    <table>
+      <thead><tr><th></th><th>Accuracy</th><th>Kappa</th><th>Macro-F1</th></tr></thead>
+      <tbody>
+        <tr><td>Random forest</td><td>0.7906 &plusmn; 0.0633</td><td>0.7062</td><td>0.6860</td></tr>
+        <tr><td>Gradient boosting</td><td>0.7912 &plusmn; 0.0572</td><td>0.7069</td><td>0.6866</td></tr>
+      </tbody>
+    </table>
+    </div>
+
+    <p>For reference, the same two models on uncropped data: 0.9024 &plusmn; 0.0265 and 0.9043 &plusmn; 0.0251, macro-F1 0.6839 and 0.6868.</p>
+
+    <p>Per-class, gradient boosting:</p>
+
+    <div class="tbl-wrap">
+    <table>
+      <thead><tr><th>Stage</th><th>Precision</th><th>Recall</th><th>F1</th><th>Support</th></tr></thead>
+      <tbody>
+        <tr><td>W</td><td>0.792</td><td>0.836</td><td>0.815</td><td>8,284</td></tr>
+        <tr><td>N1</td><td>0.384</td><td>0.208</td><td>0.269</td><td>2,804</td></tr>
+        <tr><td>N2</td><td>0.851</td><td>0.861</td><td>0.856</td><td>17,799</td></tr>
+        <tr><td>N3</td><td>0.829</td><td>0.791</td><td>0.810</td><td>5,703</td></tr>
+        <tr><td>REM</td><td>0.701</td><td>0.781</td><td>0.738</td><td>7,717</td></tr>
+      </tbody>
+    </table>
+    </div>
+
+    <p>Confusion matrix, row-normalized (rows true, columns predicted):</p>
+
+    <div class="tbl-wrap">
+    <table>
+      <thead><tr><th></th><th>W</th><th>N1</th><th>N2</th><th>N3</th><th>REM</th></tr></thead>
+      <tbody>
+        <tr><td><strong>W</strong></td><td>83.6%</td><td>5.0%</td><td>3.2%</td><td>0.9%</td><td>7.4%</td></tr>
+        <tr><td><strong>N1</strong></td><td>25.8%</td><td>20.8%</td><td>19.2%</td><td>0.2%</td><td>34.1%</td></tr>
+        <tr><td><strong>N2</strong></td><td>2.6%</td><td>1.0%</td><td>86.1%</td><td>4.7%</td><td>5.6%</td></tr>
+        <tr><td><strong>N3</strong></td><td>2.4%</td><td>0.0%</td><td>18.4%</td><td>79.1%</td><td>0.1%</td></tr>
+        <tr><td><strong>REM</strong></td><td>6.5%</td><td>4.5%</td><td>10.6%</td><td>0.2%</td><td>78.1%</td></tr>
+      </tbody>
+    </table>
+    </div>
+
+    <h2>The plateau, and why it is the finding</h2>
+    <p>The two classifiers differ by <strong>0.0005 accuracy</strong> &mdash; five ten-thousandths, against a fold-to-fold standard deviation of 0.06. Their per-fold accuracies correlate at <strong>0.972</strong>. A bagged ensemble and a boosted ensemble, tuned independently, land on top of each other and fail on the same nights.</p>
+    <p>Given these features, the classifier is not the bottleneck.</p>
+    <p>That claim needs its boundary stated: both models consume the same 26 hand-built features, so what has been shown is that model choice <em>within a classical-feature pipeline</em> does not matter. A convolutional network on the raw epoch is a different hypothesis class and could in principle recover structure the band powers discard. The stronger claim &mdash; that architecture does not matter at all &mdash; is not supported by this experiment and is not made.</p>
+    <p>What is supported is the shape of the ceiling. Single-epoch classification on Sleep-EDF tops out in the high seventies, and the reason is structural rather than architectural: <strong>a human scorer does not classify epochs in isolation.</strong> They read the night as a sequence, and the AASM rules themselves are transition rules. An N1 epoch is largely defined by what preceded it. Strip the context and you have removed information the labels were generated with.</p>
+    <p>The confusion matrix shows exactly this. N1's errors are not concentrated &mdash; 34% to REM, 26% to W, 19% to N2. It is not being confused with one neighbor. It is being confused with all of them, which is what you would expect from a class whose definition is positional.</p>
+
+    <h2>What is not explained</h2>
+    <p>Per-subject accuracy runs from <strong>0.684 to 0.866</strong> &mdash; an 18-point spread. Model choice is worth 0.0005. Subject identity is worth 18 points.</p>
+    <p>That alone justifies subject-wise k-fold over a single held-out split: with this much between-subject variance, a single split can be made to report anything in an 18-point range, and every value in it is defensible.</p>
+    <p>What drives it is unclear. A subject's N1 share does not predict their accuracy (r = &minus;0.10). Neither does age (r = 0.21, p = 0.37), though the subset's narrow age band limits that test. Electrode quality, arousal frequency, and scorer variation are all plausible and none were tested here. It is left open.</p>
+
+    <h2>Scope</h2>
+    <p>Out of scope for this piece, and deliberately: multichannel fusion, temporal context models, real-time inference, my own recordings, and beating the state of the art.</p>
+    <p>Temporal context is the known lift and is the obvious next artifact. It is a different data pipeline &mdash; sequence windowing, sequence-boundary leakage, different batching &mdash; and folding it in here would have turned a bounded result into an unbounded one.</p>
+
+    <hr>
+
+    <p style="color:var(--slate);"><strong>Limits.</strong> One dataset, one channel, single-epoch classification, self-graded. The reproduction across two machines guards against implementation error, not against a shared mistake in method. The age-stratification of the subset is stated but its effect on generalization is not measured here &mdash; that is the next artifact, not this one. If your pipeline survives the six decisions above, I'd like to hear about it. If it doesn't, I'd like to hear about that more.</p>
+
+    <div class="stamp">
+      <div class="stamp__k">Receipts · frozen results manifest</div>
+      <div class="stamp__v">SHA-256 1795cb1f39a0e6860ffda11030e1bfa4d4b922c1e797c01073d96e5975e0b42c</div>
+      <p style="margin-top:0.75rem;font-size:0.9rem;color:var(--slate);">Code, feature extraction, cross-validation harness, and the frozen results manifest are published at <a href="https://github.com/Threadborne/sleep-edf-baseline">github.com/Threadborne/sleep-edf-baseline</a>. Data is Sleep-EDF Expanded 1.0.0 from PhysioNet, verified against the published <code>SHA256SUMS.txt</code>; raw EDF is not redistributed, the loader and data manifest are. Reproduction is three commands, listed in the repository README. The uncropped comparison is one flag.</p>
+    </div>
+
+    <p style="color:var(--slate);font-size:0.9rem;"><strong>Assistance note.</strong> Portions of the analysis pipeline and this manuscript were prepared with AI assistance; every number was produced by the author's own runs, reproduced on a second machine, and verified against the frozen results manifest.</p>
+
+  </article>
+
+</main>
+
+<footer class="wrap">
+  <div class="foot">
+    <div class="foot__brand">SMALL MIND, © 2026</div>
+    <div class="foot__links">
+      <a href="/writing.html">Writing</a>
+      <a href="/founder.html">Founder</a>
+      <a href="https://github.com/Threadborne">Receipts</a>
+    </div>
+  </div>
+</footer>
+
+</body>
+</html>
