@@ -1,137 +1,149 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Four Minutes Out Loud, Small Mind</title>
-<meta name="description" content="A request for short recordings of ordinary unedited thought, for an open corpus that does not currently exist.">
-<link rel="canonical" href="https://smallmind.net/four-minutes.html">
-<meta property="og:title" content="Four Minutes Out Loud, Small Mind">
-<meta property="og:description" content="A request for short recordings of ordinary unedited thought, for an open corpus that does not currently exist.">
-<meta property="og:url" content="https://smallmind.net/four-minutes.html">
-<link rel="icon" href="assets/logo/favicon.ico" sizes="any">
-<link rel="icon" type="image/png" sizes="32x32" href="assets/logo/favicon-32.png">
-<link rel="icon" type="image/png" sizes="16x16" href="assets/logo/favicon-16.png">
-<link rel="apple-touch-icon" href="assets/logo/apple-touch-icon.png">
-<link rel="stylesheet" href="style.css">
+<title>Thinking Out Loud</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;600;700;800&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
 <style>
-  .send {
-    display: inline-block; font-family: var(--display); font-weight: 600; font-size: 1rem;
-    background: var(--purple); color: var(--paper); text-decoration: none;
-    padding: 0.85rem 1.7rem; border-radius: 6px;
-  }
-  .send:hover { filter: brightness(1.08); }
-  .sample { font-family: var(--mono); font-size: 0.84rem; line-height: 1.8; }
+/* Small Mind tokens: narrow single column, purple accent, mono for the record. */
+:root{
+  --ink:#0B0E12;
+  --paper:#F5F6F7;
+  --surface:#ffffff;
+  --purple:#9932CC;
+  --slate:#5C6B7A;
+  --rule:#D8DBDE;
+  --display:'Archivo',system-ui,sans-serif;
+  --body:'IBM Plex Sans',system-ui,sans-serif;
+  --mono:'IBM Plex Mono',ui-monospace,Menlo,monospace;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --ink:#ECEDEF;
+  --paper:#0C0E13;
+  --surface:#14171E;
+  --purple:#B45CE6;
+  --slate:#8A97A5;
+  --rule:#232833;
+  color-scheme:dark;
+}}
+:root[data-theme="dark"]{
+  --ink:#ECEDEF;
+  --paper:#0C0E13;
+  --surface:#14171E;
+  --purple:#B45CE6;
+  --slate:#8A97A5;
+  --rule:#232833;
+  color-scheme:dark;
+}
+body{background:var(--paper);color:var(--ink);font-family:var(--body);font-size:1.0625rem;line-height:1.6}
+.wrap{max-width:40rem;margin:0 auto;padding-inline:20px;padding-block:3rem 4.5rem;display:flex;flex-direction:column;gap:2.75rem}
+.eyebrow{font-family:var(--mono);font-size:.75rem;letter-spacing:.16em;text-transform:uppercase;color:var(--purple);margin:0}
+h1{font-family:var(--display);font-weight:800;font-size:clamp(2rem,6vw,3rem);line-height:1.08;letter-spacing:-.01em;margin:1rem 0 0;max-width:20ch;text-wrap:balance}
+.lede{font-size:clamp(1.05rem,2vw,1.25rem);color:var(--slate);margin:1.35rem 0 0;max-width:54ch}
+h2{font-family:var(--display);font-weight:700;font-size:1.4rem;margin:0 0 .85rem}
+section>p{margin:0 0 1.05rem;max-width:66ch}
+section>p:last-child{margin-bottom:0}
+.stamp{padding:1.25rem 1.4rem;border:1px solid var(--rule);border-left:3px solid var(--purple);border-radius:8px;background:var(--surface);margin-bottom:1.15rem}
+.stamp__k{font-family:var(--mono);font-size:.7rem;letter-spacing:.12em;text-transform:uppercase;color:var(--slate)}
+.stamp__v{font-family:var(--mono);font-size:.82rem;line-height:1.8;color:var(--ink);margin-top:.55rem}
+.principles{display:grid;gap:0;margin-bottom:1.15rem}
+.principle{display:grid;grid-template-columns:auto 1fr;gap:1.25rem;padding:1.4rem 0;border-top:1px solid var(--rule)}
+.principle:first-child{border-top:0;padding-top:0}
+.principle__n{font-family:var(--mono);font-size:.8rem;color:var(--purple);padding-top:.2rem}
+.principle h3{font-family:var(--display);font-size:1.1rem;font-weight:600;margin:0 0 .35rem}
+.principle p{color:var(--slate);margin:0;max-width:60ch;min-width:0}
+.built{list-style:none;margin:0;padding:0;border-top:1px solid var(--rule)}
+.built li{display:grid;grid-template-columns:auto 1fr;gap:1rem;padding:.9rem 0;border-bottom:1px solid var(--rule);font-size:.98rem}
+.built li>span{font-family:var(--mono);font-size:.7rem;letter-spacing:.06em;color:var(--purple);padding-top:.3rem;white-space:nowrap}
+.built li>div{min-width:0}
+hr{border:0;border-top:1px solid var(--rule);margin:0}
+.send{display:inline-block;font-family:var(--display);font-weight:600;font-size:1rem;background:var(--purple);color:var(--paper);text-decoration:none;padding:.85rem 1.7rem;border-radius:6px}
+.send:focus-visible{outline:2px solid var(--purple);outline-offset:3px}
+.quiet{font-family:var(--mono);font-size:.82rem;color:var(--slate);line-height:1.7}
+strong{font-weight:600}
 </style>
-</head>
-<body>
 
-<header class="wrap masthead">
-  <a class="brand" href="/">
-    <span class="brand__mark" role="img" aria-label="Small Mind"></span>
-    <span class="brand__word"><span>SMALL</span> <b>MIND</b></span>
-  </a>
-  <nav class="nav">
-    <a href="/writing.html">Writing</a>
-    <a href="/founder.html">Founder</a>
-  </nav>
-</header>
+<div class="wrap">
 
-<main class="wrap">
-
-  <section class="hero" style="padding-bottom:1rem;">
+  <header>
     <p class="eyebrow">Open dataset, in progress</p>
-    <h1 style="font-size:clamp(2rem,5vw,3.2rem);font-weight:800;max-width:20ch;">Four minutes of you thinking out loud.</h1>
-    <p class="lede quiet" style="color:var(--slate);">
-      I need recordings of ordinary unedited thought, and there is almost no
-      such thing on the internet.
-    </p>
+    <h1>A few minutes of you thinking out loud.</h1>
+    <p class="lede">I need recordings of ordinary unedited thought, and there is almost no such thing on the internet.</p>
+  </header>
+
+  <section>
+    <h2>What I am asking for</h2>
+    <p>Record yourself on your phone while you are doing something. That is the whole trick. Talking out loud while your hands are busy is easy and it comes naturally. Talking into empty air with nothing to do is strangely exhausting, so don't do that to yourself. Open the recorder, set the phone down, and go back to whatever you were already doing.</p>
+    <p>Do it while you wash dishes, debug some code, assemble furniture, fight a seized bolt in the garage, sort the mail, fold laundry, plan your week, or work through a form you have been putting off. The task does not matter. It is just there to give your mouth something to follow.</p>
+    <p>Not a description of your inner voice, not an explanation of anything. Just talk while you do the thing.</p>
+    <p>A minute is enough. If you are in the middle of something, keep going as long as it stays easy. The first bit is always self-conscious — keep going, it loosens up fast once you forget the phone is there.</p>
   </section>
 
-  <section class="paper" style="padding-top:1rem;">
-    <article>
-
-      <h2>What I am asking for</h2>
-      <p>Record yourself for three to five minutes on your phone, talking out loud while you are working on something or stuck on something. Dishes, code, a seized bolt in the garage, a form you have been putting off. Not a description of your inner voice, not an explanation of anything. Just talk while you do a thing.</p>
-      <p>The first minute is always self-conscious. That is expected, and I throw it away.</p>
-
-      <h2>What it should sound like</h2>
-      <div class="stamp">
-        <div class="stamp__k">Sample, typed out instead of recorded</div>
-        <div class="stamp__v sample" style="word-break:normal;">i wonder if people would do this if i asked i bet they would if i got it in front of the right people but i have so much to do still i need to fnish my application for wgu and start the sophia learning what are the boys fighting about now i bet the youngest didnt even finish his food oh great now its quiet up there im sure hell start screaming again in a second oh i still have to pay for the sophia subscription before i can even start and thats a hundred bucks yep hes screaming again</div>
-      </div>
-      <p>Boring is the point. Nothing in there resolves, nothing gets explained, and it changes subject four times in six lines. If yours sounds interesting you are performing for the microphone and I cannot use it.</p>
-
-      <h2>How to do it</h2>
-      <div class="principles">
-        <div class="principle">
-          <div class="principle__n">01</div>
-          <div>
-            <h3>Use the recorder already on your phone</h3>
-            <p>Nothing to install, no account, no app.</p>
-          </div>
-        </div>
-        <div class="principle">
-          <div class="principle__n">02</div>
-          <div>
-            <h3>Start it, put it down, carry on</h3>
-            <p>Go back to whatever you were doing before you opened this page.</p>
-          </div>
-        </div>
-        <div class="principle">
-          <div class="principle__n">03</div>
-          <div>
-            <h3>Talk</h3>
-            <p>Trail off, repeat yourself, lose the thread, contradict yourself. All of that is the useful part.</p>
-          </div>
-        </div>
-        <div class="principle">
-          <div class="principle__n">04</div>
-          <div>
-            <h3>Stop around four minutes</h3>
-            <p>Do not wrap up and do not conclude. Stopping mid-thought is correct.</p>
-          </div>
-        </div>
-      </div>
-      <p>If you do a few across a week they get better, because by the third one you have stopped noticing the recorder. Whatever format your phone records in is fine. The one thing that breaks the upload is an iPhone set to Lossless under Settings, Voice Memos, Audio Quality, which makes four minutes too large to send.</p>
-
-      <hr>
-
-      <h2>What happens to your recording</h2>
-      <ul class="built">
-        <li><span>LOCAL</span><div>Transcribed on my own machine. It is not sent to any transcription service.</div></li>
-        <li><span>DELETED</span><div>The audio is destroyed once it is transcribed. Your voice is never kept and never published.</div></li>
-        <li><span>SCRUBBED</span><div>Names, employers, addresses and anything else identifying are stripped from the text.</div></li>
-        <li><span>PUBLISHED</span><div>Only the processed text is released. The whole point is a dataset that can actually be shared, and that means the raw material cannot be.</div></li>
-        <li><span>YOUR CALL</span><div>Do not record anything you would mind existing in text form. Four careful minutes beats something you regret sending.</div></li>
-      </ul>
-
-      <h2>Why this does not already exist</h2>
-      <p>I am training a small model that runs in a loop continuously, reading from a memory store, thinking, and passing things up to a larger model when it finds something worth passing. It has to learn from what unstructured thought actually looks like rather than from finished writing.</p>
-      <p>So I went looking for a corpus. What you can download today is 45,000 transcripts of people spending fifteen seconds choosing between two gambles, one ninety-one second audio clip, and ten hours of a developer in Bratislava debugging a Xamarin app in Slovak. That is the public yield.</p>
-      <p>Everything else is locked up. Researchers recorded thousands of hours of this over forty years, published the analysis, and kept the recordings, because a voice is identifying data and the consent forms only ever covered the original study. The method is old and the material is gone.</p>
-
-      <hr>
-
-      <p><a class="send" href="https://tally.so/r/WOxjPP" target="_blank" rel="noopener">Send a recording</a></p>
-      <p class="ledger-ref">No account needed and no email required. Nobody is getting paid, me included. If it works the corpus gets published, with credit to anyone who wants it.</p>
-
-    </article>
-  </section>
-
-</main>
-
-<footer class="wrap">
-  <div class="foot">
-    <div class="foot__brand">SMALL MIND, &copy; 2026</div>
-    <div class="foot__links">
-      <a href="/">Home</a>
-      <a href="/writing.html">Writing</a>
-      <a href="/founder.html">Founder</a>
-      <a href="https://github.com/Threadborne">Receipts</a>
+  <section>
+    <h2>What it should sound like</h2>
+    <div class="stamp">
+      <div class="stamp__k">Sample, typed out instead of recorded</div>
+      <div class="stamp__v">i wonder if people would do this if i asked i bet they would if i got it in front of the right people but i have so much to do still i need to fnish my application for wgu and start the sophia learning what are the boys fighting about now i bet the youngest didnt even finish his food oh great now its quiet up there im sure hell start screaming again in a second oh i still have to pay for the sophia subscription before i can even start and thats a hundred bucks yep hes screaming again</div>
     </div>
-  </div>
-</footer>
+    <p>Boring is the point. Nothing in there resolves, nothing gets explained, and it changes subject four times in six lines. If yours sounds interesting you are performing for the microphone and I cannot use it.</p>
+  </section>
 
-</body>
-</html>
+  <section>
+    <h2>How to do it</h2>
+    <div class="principles">
+      <div class="principle">
+        <div class="principle__n">01</div>
+        <div>
+          <h3>Use the recorder already on your phone</h3>
+          <p>Nothing to install, no account, no app.</p>
+        </div>
+      </div>
+      <div class="principle">
+        <div class="principle__n">02</div>
+        <div>
+          <h3>Start it, put it down, get back to it</h3>
+          <p>Return to whatever you were doing before you opened this page. The recording rides along.</p>
+        </div>
+      </div>
+      <div class="principle">
+        <div class="principle__n">03</div>
+        <div>
+          <h3>Talk while you work</h3>
+          <p>Trail off, repeat yourself, lose the thread, contradict yourself. All of that is the useful part.</p>
+        </div>
+      </div>
+      <div class="principle">
+        <div class="principle__n">04</div>
+        <div>
+          <h3>Stop whenever</h3>
+          <p>A minute is plenty, more is welcome. Do not wrap up and do not conclude. Stopping mid-thought is correct.</p>
+        </div>
+      </div>
+    </div>
+    <p>If you do a few across a week they get better, because by the third one you have stopped noticing the recorder. Whatever format your phone records in is fine. The one thing that breaks the upload is an iPhone set to Lossless under Settings, Voice Memos, Audio Quality, which makes the file too large to send.</p>
+  </section>
+
+  <hr>
+
+  <section>
+    <h2>What happens to your recording</h2>
+    <ul class="built">
+      <li><span>LOCAL</span><div>Transcribed on my own machine. It is not sent to any transcription service.</div></li>
+      <li><span>DELETED</span><div>The audio is destroyed once it is transcribed. Your voice is never kept and never published.</div></li>
+      <li><span>SCRUBBED</span><div>Names, employers, addresses and anything else identifying are stripped from the text.</div></li>
+      <li><span>PUBLISHED</span><div>Only the processed text is released. The whole point is a dataset that can actually be shared, and that means the raw material cannot be.</div></li>
+      <li><span>YOUR CALL</span><div>Do not record anything you would mind existing in text form. A careful minute beats something you regret sending.</div></li>
+    </ul>
+  </section>
+
+  <section>
+    <h2>Why this does not already exist</h2>
+    <p>I am training a small model that runs in a loop continuously, reading from a memory store, thinking, and passing things up to a larger model when it finds something worth passing. It has to learn from what unstructured thought actually looks like rather than from finished writing.</p>
+    <p>So I went looking for a corpus. What you can download today is 45,000 transcripts of people spending fifteen seconds choosing between two gambles, one ninety-one second audio clip, and ten hours of a developer in Bratislava debugging a Xamarin app in Slovak. That is the public yield.</p>
+    <p>Everything else is locked up. Researchers recorded thousands of hours of this over forty years, published the analysis, and kept the recordings, because a voice is identifying data and the consent forms only ever covered the original study. The method is old and the material is gone.</p>
+  </section>
+
+  <hr>
+
+  <section>
+    <a class="send" href="https://tally.so/r/WOxjPP" target="_blank" rel="noopener">Send a recording</a>
+    <p class="quiet" style="margin-top:1.15rem">No account needed and no email required. Nobody is getting paid, me included. If it works the corpus gets published, with credit to anyone who wants it.</p>
+  </section>
+
+</div>
