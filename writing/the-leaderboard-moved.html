@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>The Leaderboard Moved, the Attacks Didn't, Small Mind</title>
+<meta name="description" content="Re-scoring JailbreakBench's published artifacts with five judges and two parsers. Kendall's tau falls to 0.115, and the judge-induced spread is 82 times the leaderboard's smallest gap.">
+<link rel="canonical" href="https://smallmind.net/writing/the-leaderboard-moved.html">
+<meta property="og:title" content="The Leaderboard Moved, the Attacks Didn't">
+<meta property="og:description" content="The attack responses are frozen files. Only the judge changed, and four of five alternates reorder the leaderboard.">
+<meta property="og:url" content="https://smallmind.net/writing/the-leaderboard-moved.html">
+<meta property="og:type" content="article">
+<link rel="icon" href="../assets/logo/favicon.ico" sizes="any">
+<link rel="icon" type="image/png" sizes="32x32" href="../assets/logo/favicon-32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="../assets/logo/favicon-16.png">
+<link rel="apple-touch-icon" href="../assets/logo/apple-touch-icon.png">
+<link rel="stylesheet" href="../style.css">
+<style>
+  /* paper-local: results tables, matched to the site's rule/mono system */
+  .paper article table {
+    width: 100%; border-collapse: collapse; margin: 1.5rem 0;
+    font-family: var(--mono); font-size: 0.8rem;
+  }
+  .paper article th, .paper article td {
+    text-align: left; padding: 0.5rem 0.75rem; border-bottom: 1px solid var(--rule);
+    white-space: nowrap;
+  }
+  .paper article th {
+    color: var(--slate); font-weight: 500; letter-spacing: 0.04em;
+    text-transform: uppercase; font-size: 0.7rem;
+  }
+  .paper article td strong { color: var(--purple); font-weight: 600; }
+  .paper article .tbl-wrap { overflow-x: auto; }
+</style>
+</head>
+<body>
+
+<header class="wrap masthead">
+  <a class="brand" href="/">
+    <span class="brand__mark" role="img" aria-label="Small Mind"></span>
+    <span class="brand__word"><span>SMALL</span> <b>MIND</b></span>
+  </a>
+  <nav class="nav">
+    <a href="/writing.html">Writing</a>
+    <a href="/founder.html">Founder</a>
+  </nav>
+</header>
+
+
+<main class="wrap paper">
+
+  <p class="eyebrow">Evaluation integrity &middot; 2026</p>
+  <h1>The Leaderboard Moved, the Attacks Didn't</h1>
+  <p class="paper__sub">Re-scoring JailbreakBench's published artifacts with five judges. The ranking is not a property of the attacks.</p>
+  <p class="paper__by">Michael Smith &middot; Small Mind LLC</p>
+
+  <article>
+
+    <p>JailbreakBench does something most benchmarks do not: it publishes its artifacts. Not just the attack prompts, but the target model's actual responses, frozen in a repository at a known commit. The leaderboard ranks 18 attack and target-model pairs by attack success rate.</p>
+
+    <p>Producing that rate requires one more step. Something has to read each response and decide whether it constitutes a jailbreak. In JailbreakBench that something is Llama-3-70B, prompted a particular way, with its output read by a particular parser.</p>
+
+    <p>Nothing about an attack changes when you change the judge. The responses are files on disk. So if the ranking moves when only the judge moves, the ranking was never a property of the attacks.</p>
+
+    <p>It moves. Kendall's tau against the published ordering falls as low as <strong>0.115</strong>. Four of the five alternate judges push it below the pre-registered threshold of 0.80. And the sharper of the two results is not the reordering at all: the judge-induced spread on a single entry reaches <strong>0.82 ASR</strong>, against a smallest adjacent gap on the published leaderboard of <strong>0.01</strong>. The measurement wobbles, under one declared dial, by 82 times the resolution the leaderboard reports at.</p>
+
+    <h2>What was frozen, and when</h2>
+
+    <p>The design was committed before any scoring was run, and the scoring script was committed separately before its first live run, so the gap between design and execution is visible in the repository history rather than asserted here.</p>
+
+    <p>Pre-registration v1.1 landed at <code>c44d9211</code> on 2026-09-16 with no scoring performed. It went through five revisions before the analysis ran, every one of them logged in the document's own changelog. Two revisions are worth naming because they are the kind usually made silently: v1.2 corrected nine errors found by reading v1.1 against the pinned sources while writing the scoring script, and v1.4 declared a runtime deviation for one judge <em>before</em> that judge's pass rather than after it. The final document is v1.5, SHA-256 <code>7f2bd31bf198554a9ceee7cc8300e1750e23d60ac98408ccd48384e23795b6e5</code>.</p>
+
+    <p>Two thresholds were registered. H1 holds if Kendall's tau between the published ranking and at least one alternate configuration falls below 0.80. H2 holds if the judge-induced ASR spread on at least one entry exceeds the smallest gap between adjacent entries on the reference leaderboard. The pre-registration states explicitly that every combination of supported and unsupported is publishable, and that the study is not designed to produce a particular result. That sentence is load-bearing, because one of the four predictions failed and is reported below.</p>
+
+    <h2>The setup</h2>
+
+    <p>Artifacts from the JailbreakBench repository at commit <code>909e68c01d94222b8ad2e397a017e2e12e2adb73</code>: 18 entries, 100 behaviors each, with target responses stored. Two dials.</p>
+
+    <p><strong>Dial 1, the judge.</strong> The reference is Llama-3-70B as shipped. Alternates are Llama Guard 1 (from the stored labels), plus four local models run at q8_0 through Ollama at temperature 0 with <code>num_ctx</code> 8192: Llama-3-8B-Instruct, Qwen2.5-7B-Instruct, Mistral-7B-Instruct, and Gemma-2-9B-It. Four model families, chosen to span them rather than to find a winner.</p>
+
+    <p><strong>Dial 2, the parser.</strong> Two levels. <code>shipped</code> is <code>classifier.py</code> at commit <code>23dbdf6b</code>, the file audited in <a href="https://github.com/JailbreakBench/jailbreakbench/issues/50">JailbreakBench issue #50</a>. <code>corrected</code> is the same file with the eight defects in that audit repaired per its stated directions. The cited line numbers span three code paths, so the correction is three functions, not one. One defect was deliberately left unrepaired: a genuine refusal worded outside the parser's 13 listed phrases is a coverage limit of a fixed phrase list rather than a matching bug, and extending that list would have been an undeclared dial.</p>
+
+    <p>That audit explicitly scoped out re-scoring the published artifacts. This experiment runs it. Ten configurations, <strong>10,800 scored rows</strong>.</p>
+
+    <h2>H1: the ranking does not survive the judge</h2>
+
+    <p>Kendall's tau between each configuration's ranking of the 18 entries and the reference ranking. The pre-registered threshold is 0.80.</p>
+
+    <div class="tbl-wrap">
+    <table>
+      <thead><tr><th>Configuration</th><th>Kendall tau</th><th>Entries</th><th>Above 0.80</th></tr></thead>
+      <tbody>
+        <tr><td>gemma-2-9b-it, shipped</td><td><strong>0.832</strong></td><td>18</td><td>yes</td></tr>
+        <tr><td>gemma-2-9b-it, corrected</td><td><strong>0.832</strong></td><td>18</td><td>yes</td></tr>
+        <tr><td>llama-guard-1, shipped</td><td>0.774</td><td>16</td><td>no</td></tr>
+        <tr><td>qwen2.5-7b-instruct, shipped</td><td>0.769</td><td>18</td><td>no</td></tr>
+        <tr><td>qwen2.5-7b-instruct, corrected</td><td>0.769</td><td>18</td><td>no</td></tr>
+        <tr><td>mistral-7b-instruct, corrected</td><td>0.637</td><td>18</td><td>no</td></tr>
+        <tr><td>mistral-7b-instruct, shipped</td><td>0.308</td><td>18</td><td>no</td></tr>
+        <tr><td>llama3-8b-instruct, shipped</td><td><strong>0.115</strong></td><td>18</td><td>no</td></tr>
+        <tr><td>llama3-8b-instruct, corrected</td><td><strong>0.115</strong></td><td>18</td><td>no</td></tr>
+      </tbody>
+    </table>
+    </div>
+
+    <p><strong>H1 is supported.</strong> Minimum tau is 0.115. Only Gemma-2-9B clears the threshold, and it clears it by 0.032.</p>
+
+    <p>A tau of 0.115 is worth sitting with. It is not a slightly different ordering. It is close enough to zero that the ranking produced by Llama-3-8B carries almost no information about the ranking produced by Llama-3-70B, on the same frozen responses. On the 17-entry set excluding the one thinly populated PAIR entry, that figure drops further, to <strong>0.023</strong>.</p>
+
+    <h2>H2: the spread is larger than the leaderboard's own resolution</h2>
+
+    <p>This is the result that should change how the number is read.</p>
+
+    <p>The smallest gap between adjacent entries on the reference leaderboard is <strong>0.01 ASR</strong>. One percentage point separates two neighbors, and the leaderboard prints that separation as if it were a fact about the attacks.</p>
+
+    <p>The largest judge-induced spread on a single entry is <strong>0.82</strong>, on JBC/manual/gpt-3.5-turbo-1106. Depending on which judge reads the same 100 stored responses, that entry's attack success rate ranges across 82 percentage points.</p>
+
+    <p>It is not one outlier. <strong>All 18 entries</strong> have a judge-induced spread exceeding the smallest adjacent gap. The JBC manual entries are the widest (0.82, 0.81, 0.78, 0.68), which makes sense: manually written jailbreaks produce the most ambiguous responses, and ambiguity is exactly where judges diverge. The narrowest is PAIR against Llama-2-7B at 0.04, which is still four times the smallest gap.</p>
+
+    <p><strong>H2 is supported</strong>, at a ratio of 82 to 1. The honest reading is that a leaderboard reporting to two decimal places is reporting about two orders of magnitude more precision than the measurement supports under a single declared dial.</p>
+
+    <h2>The parser dial moved exactly one judge, and moved it a long way</h2>
+
+    <p>Across the four local judges, the shipped and corrected parsers disagreed on exactly one.</p>
+
+    <div class="tbl-wrap">
+    <table>
+      <thead><tr><th>Judge</th><th>Rows scored</th><th>Rows that flipped</th><th>Direction</th></tr></thead>
+      <tbody>
+        <tr><td>llama3-8b-instruct</td><td>1,637</td><td>0</td><td>n/a</td></tr>
+        <tr><td>qwen2.5-7b-instruct</td><td>1,637</td><td>0</td><td>n/a</td></tr>
+        <tr><td>gemma-2-9b-it</td><td>1,637</td><td>0</td><td>n/a</td></tr>
+        <tr><td>mistral-7b-instruct</td><td>1,637</td><td><strong>534</strong></td><td>all one way</td></tr>
+      </tbody>
+    </table>
+    </div>
+
+    <p>Every one of the 534 flipped rows went the same direction: the shipped parser read the response as not jailbroken, the corrected parser read it as jailbroken. Zero went the other way. The cause is mundane, and that is the point. Mistral writes its verdict with a capitalization the shipped parser does not match.</p>
+
+    <p>A parser defect that is literally invisible on three judges silently suppresses a third of the positive calls on the fourth. And it is not a rounding difference: Mistral's tau against the reference moves from <strong>0.308 to 0.637</strong> on the correction alone. A capitalization bug carried one judge halfway across the ranking space.</p>
+
+    <p>The general form is worth stating. A parser is tested against the output format of the model it ships with. Substitute the model and the parser becomes an untested component, and it fails silently, because an unmatched verdict looks exactly like a negative.</p>
+
+    <h2>H3 could not be evaluated, and is reported as such</h2>
+
+    <p>H3 asked whether the judge behaves as a nuisance dial: one that moves the reported number without moving the underlying capability. Measuring that requires at least two measures of the same system, so that a change can be shown to move one and not the other. The framework's nuisance fraction is undefined with fewer.</p>
+
+    <p>Only M1, attack success rate, was available. M2, refusal rate, requires a <code>judge_task</code> column that was never added to the scoring script. M3 as originally registered turned out to cover exactly one response, because the calibration set does not overlap the artifacts. With K_eff of 1, the transfer test and the nuisance fraction are undefined by the pre-registration's own corollary.</p>
+
+    <p><strong>H3 is not evaluable on this data.</strong> It is reported here rather than removed, because a hypothesis that the data cannot address is a result about the design, and the design was mine.</p>
+
+    <h2>H3 prime: is the reference the right anchor?</h2>
+
+    <p>Everything above measures agreement with Llama-3-70B. That only means something if Llama-3-70B is itself a reasonable judge, which the experiment as registered had no way to check. So a replacement was registered in v1.5, before the calibration set was scored: across the judge configurations, does agreement with the reference track agreement with humans?</p>
+
+    <p>JailbreakBench ships a 300-row <code>judge_comparison</code> set with a <code>human_majority</code> column. Scoring every configuration against it gives an accuracy ladder.</p>
+
+    <div class="tbl-wrap">
+    <table>
+      <thead><tr><th>Judge</th><th>Accuracy vs humans</th><th>Precision</th><th>Recall</th></tr></thead>
+      <tbody>
+        <tr><td>llama3-70b (reference)</td><td><strong>0.907</strong></td><td>0.825</td><td>0.945</td></tr>
+        <tr><td>gpt4</td><td>0.903</td><td>0.840</td><td>0.909</td></tr>
+        <tr><td>gemma-2-9b-it</td><td><strong>0.880</strong></td><td>0.768</td><td>0.964</td></tr>
+        <tr><td>llamaguard2</td><td>0.877</td><td>0.797</td><td>0.891</td></tr>
+        <tr><td>qwen2.5-7b-instruct</td><td>0.857</td><td>0.731</td><td>0.964</td></tr>
+        <tr><td>harmbench</td><td>0.783</td><td>0.653</td><td>0.873</td></tr>
+        <tr><td>mistral-7b-instruct, corrected</td><td>0.737</td><td>0.584</td><td>0.982</td></tr>
+        <tr><td>llama3-8b-instruct</td><td>0.727</td><td>0.597</td><td>0.782</td></tr>
+        <tr><td>mistral-7b-instruct, shipped</td><td>0.693</td><td>0.563</td><td>0.727</td></tr>
+      </tbody>
+    </table>
+    </div>
+
+    <p>Spearman's rho between the tau column and the accuracy column, across eight configurations, is <strong>0.926</strong>. <strong>H3 prime is supported.</strong> Judges that agree more with the reference also agree more with humans, which makes the reference a defensible anchor rather than an arbitrary one. The reference is also the most accurate judge in the set at 0.907, so it is a ceiling and not merely a baseline.</p>
+
+    <p>One detail in that table is worth stating carefully, because it is easy to read the wrong way. Correcting the parser improved Mistral on every axis: accuracy 0.693 to 0.737, precision 0.563 to 0.584, recall 0.727 to 0.982. That is a real improvement, not a headline bought by over-calling.</p>
+
+    <p>The caveat is elsewhere, and it is a denominator problem. Under the corrected parser, <strong>60 of Mistral's 300 verdicts, a full 20%, could not be parsed at all</strong>, against zero under the shipped parser. Unparseable rows are counted as not jailbroken, which is the convention registered in advance precisely because this situation was anticipated. So a fifth of that judge's output is being defaulted to a negative, and the accuracy figure is reached despite that rather than because the corrected parser reads Mistral cleanly. Even corrected, Mistral is the third least accurate configuration in the table, ahead of only Llama-3-8B and its own shipped self.</p>
+
+    <p>Reading the accuracy gain alone would have told a tidier and wronger story. That is the failure mode this research program exists to document, and it does not stop applying to the person running the experiment.</p>
+
+    <h2>A prediction that failed</h2>
+
+    <p>The framework predicts a rough-set boundary region: configurations whose immediate neighborhood in the choice space spans more than one outcome class, which would localize the sensitivity to specific parts of the space rather than smearing it across all of it.</p>
+
+    <p>Observed: 10 configurations, 10 outcome classes, boundary width zero everywhere. Every configuration is its own equivalence class, so the lower and upper approximations coincide and no boundary region exists.</p>
+
+    <p><strong>The prediction failed.</strong> With this few configurations and this much disagreement between them, every point is its own class and the rough-set machinery has nothing to grip. That is a real limitation of applying the framework at this granularity, and it is reported because it was predicted in writing beforehand.</p>
+
+    <h2>One declared deviation</h2>
+
+    <p>Mistral-7B hung three times at the 300 second timeout on the uncapped scoring script, completing 479 of 1,800 rows. Rather than quietly adjusting and re-running, the cap was written into pre-registration v1.4 and committed <em>before</em> the Mistral pass: <code>num_predict=32</code>, 30 second timeout. The run then completed. The deviation is declared in the document, in the commit history, and here.</p>
+
+    <h2>What this shows, and what it does not</h2>
+
+    <p>It shows that the published JailbreakBench ordering is a joint property of the attacks and the judge, and that under a declared judge dial it does not survive. It shows that the resolution at which the leaderboard reports is finer than the measurement supports by roughly two orders of magnitude.</p>
+
+    <p>It does not show that any alternate judge is better. H3 prime says the opposite: the reference is the most accurate judge available here. The claim is not that Llama-3-70B is wrong. The claim is that a reported metric is one point in a space of evaluation choices, and a leaderboard prints the point as though it were the space.</p>
+
+    <p>It shows nothing whatsoever about the attacks. The responses are fixed files and were never re-generated. Any movement in the table is movement in the instrument.</p>
+
+    <p>And it does not show that JailbreakBench is a bad benchmark. The opposite, in a specific way: this experiment is only possible because JailbreakBench publishes its artifacts, ships a human-labeled comparison set, and leaves its classifier in the open where an audit could find eight defects in it. Benchmarks that publish only their numbers cannot be checked like this at all. The ones that can be checked are the ones that get checked, which is a bad incentive and not a reason to stop.</p>
+
+    <hr>
+
+    <p style="color:var(--slate);"><strong>Limits.</strong> One benchmark, one artifact commit, four local judges plus one reference, two parser levels. The local judges were run at q8_0; quantization is an undeclared dial and should have been declared, so the figures for those four confound judge identity with quantization. The human-majority set is 300 rows and is the only ground truth anywhere in this study. M2 never ran, which is why H3 could not be evaluated. Single operator, self-graded, no second implementation. If your benchmark's ranking survives a judge substitution, I would like to hear about it. If it doesn't, I would like to hear about that more.</p>
+
+    <div class="stamp">
+      <div class="stamp__k">Receipts &middot; frozen results manifest</div>
+      <div class="stamp__v">SHA-256 f8eff25925468bca1fe6f1c29d8f51898d6e63de5ef17d8ba6318ff74ce6464a</div>
+      <div class="stamp__k" style="margin-top:0.75rem;">Receipts &middot; calibration manifest</div>
+      <div class="stamp__v">SHA-256 09bc260b6ec0011897d9d51ccf1ab13a7aa0bcd4ac283f4bdfb947ea31f5692a</div>
+      <p style="margin-top:0.75rem;font-size:0.9rem;color:var(--slate);">Pre-registration v1.5, the formal framework, the scoring and analysis scripts, the corrected parser, and both frozen result manifests are published at <a href="https://github.com/Threadborne/eval-sensitivity">github.com/Threadborne/eval-sensitivity</a>. Pre-registration v1.1 is at commit <code>c44d9211</code>, dated before any scoring run; the analysis is frozen at <code>ae9e7d0</code>. Artifacts are JailbreakBench at commit <code>909e68c0</code> and are not redistributed. Verify any document with <code>sha256sum</code>.</p>
+    </div>
+
+    <p style="color:var(--slate);font-size:0.9rem;"><strong>Assistance note.</strong> Portions of the scoring pipeline and this manuscript were prepared with AI assistance; every number was produced by the author's own runs against the pre-registered design and verified against the frozen result manifests.</p>
+
+  </article>
+
+</main>
+
+<footer class="wrap">
+  <div class="foot">
+    <div class="foot__brand">SMALL MIND, &copy; 2026</div>
+    <div class="foot__links">
+      <a href="/writing.html">Writing</a>
+      <a href="/founder.html">Founder</a>
+      <a href="https://github.com/Threadborne">Receipts</a>
+    </div>
+  </div>
+</footer>
+
+</body>
+</html>
