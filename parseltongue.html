@@ -1,0 +1,233 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ParselTongue</title>
+<style>
+  :root{
+    --bg:#0c0e12; --panel:#14171d; --panel2:#1a1e26; --line:#2a2f3a;
+    --fg:#e6e9ef; --dim:#8b94a3; --accent:#5ad18b; --accent2:#4aa3ff;
+    --mono:"SFMono-Regular",ui-monospace,"JetBrains Mono",Menlo,Consolas,monospace;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;background:var(--bg);color:var(--fg);
+    font-family:ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,sans-serif;
+    -webkit-text-size-adjust:100%}
+  .wrap{max-width:860px;margin:0 auto;padding:20px 16px 64px}
+  header{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;margin-bottom:4px}
+  h1{font-size:22px;margin:0;letter-spacing:.5px;font-weight:800}
+  h1 .snake{color:var(--accent)}
+  .tag{color:var(--dim);font-size:13px}
+  .io{margin-top:16px}
+  label.lbl{display:block;font-size:12px;letter-spacing:.08em;text-transform:uppercase;
+    color:var(--dim);margin:0 0 6px}
+  textarea#src{width:100%;min-height:120px;resize:vertical;background:var(--panel);
+    color:var(--fg);border:1px solid var(--line);border-radius:10px;padding:12px;
+    font-family:var(--mono);font-size:14px;line-height:1.5;outline:none}
+  textarea#src:focus{border-color:var(--accent2)}
+  .meta{display:flex;gap:16px;flex-wrap:wrap;margin-top:8px;color:var(--dim);font-size:12px}
+  .meta b{color:var(--fg);font-weight:600}
+  .tok-head{display:flex;align-items:center;justify-content:space-between;gap:12px;
+    flex-wrap:wrap;margin:22px 0 8px}
+  .tok-head .left{display:flex;align-items:center;gap:10px}
+  select{background:var(--panel2);color:var(--fg);border:1px solid var(--line);
+    border-radius:8px;padding:6px 8px;font-family:var(--mono);font-size:13px}
+  .tokcount{color:var(--dim);font-size:12px}
+  .tokcount b{color:var(--accent)}
+  #tokens{background:var(--panel);border:1px solid var(--line);border-radius:10px;
+    padding:12px;min-height:56px;font-family:var(--mono);font-size:14px;line-height:2;
+    word-break:break-all;white-space:pre-wrap}
+  #tokens .t{border-radius:3px;padding:1px 0}
+  #tokens .ws{opacity:.5}
+  .tnote{color:var(--dim);font-size:12px;margin-top:6px}
+  .grid{margin-top:22px;display:grid;gap:14px}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:10px;overflow:hidden}
+  .card h2{margin:0;font-size:13px;font-weight:600;letter-spacing:.04em;
+    padding:10px 12px;border-bottom:1px solid var(--line);display:flex;
+    align-items:center;justify-content:space-between;gap:8px}
+  .card h2 .k{color:var(--dim);font-weight:400;font-size:11px}
+  .out{font-family:var(--mono);font-size:13.5px;line-height:1.55;padding:12px;
+    white-space:pre-wrap;word-break:break-word;min-height:20px;color:var(--fg)}
+  .copy{cursor:pointer;background:transparent;border:1px solid var(--line);color:var(--dim);
+    border-radius:6px;font-size:11px;padding:3px 8px;transition:.15s}
+  .copy:hover{border-color:var(--accent);color:var(--accent)}
+  .copy.ok{border-color:var(--accent);color:var(--accent)}
+  footer{margin-top:40px;color:var(--dim);font-size:11px;text-align:center;line-height:1.6}
+  footer a{color:var(--dim)}
+  @media (max-width:560px){.wrap{padding:16px 12px 48px}h1{font-size:20px}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1><span class="snake">Parsel</span>Tongue</h1>
+    <span class="tag">text transforms + live tokenizer</span>
+  </header>
+
+  <div class="io">
+    <label class="lbl" for="src">input</label>
+    <textarea id="src" placeholder="Type or paste here. Everything below updates live." autofocus></textarea>
+    <div class="meta">
+      <span><b id="cChars">0</b> chars</span>
+      <span><b id="cWords">0</b> words</span>
+      <span><b id="cBytes">0</b> bytes (utf-8)</span>
+    </div>
+  </div>
+
+  <div class="tok-head">
+    <div class="left">
+      <span class="lbl" style="margin:0">tokenizer</span>
+      <select id="model"></select>
+    </div>
+    <span class="tokcount"><b id="tokN">0</b> tokens</span>
+  </div>
+  <div id="tokens"></div>
+  <div class="tnote" id="tnote">Loading tokenizer…</div>
+
+  <div class="grid" id="grid"></div>
+
+  <footer>
+    Rebuilt as a standalone page from <a href="https://github.com/BASI-LABS/parseltongue" target="_blank" rel="noopener">BASI-LABS/parseltongue</a>.
+    Token view uses GPT (tiktoken) encodings and pulls js-tiktoken from a CDN on load; transforms run fully offline.
+  </footer>
+</div>
+
+<script>
+// ---- transforms (ported from src/utils.ts, bugs fixed) ----
+const VOWELS=new Set([..."aeiouAEIOU"]);
+const PUNCT=new Set([...".,;:!?'\"-—()[]{}/\\|<>#@&*^~`_+=%$"]);
+const LEET={a:"4",e:"3",g:"6",i:"1",o:"0",s:"5",t:"7",b:"8",l:"1"};
+
+function toLeet(t){return t.toLowerCase().split("").map(c=>LEET[c]||c).join("")}
+
+function rot13(t){return t.replace(/[a-z]/gi,c=>{
+  const b=c<="Z"?65:97;return String.fromCharCode((c.charCodeAt(0)-b+13)%26+b);})}
+
+function stripPunct(w){let r="";for(const c of w)if(!PUNCT.has(c))r+=c;return r}
+function suffixPunct(w){const last=w[w.length-1];
+  return PUNCT.has(last)?[w.slice(0,-1),last]:[w,""]}
+
+function toPigLatin(t){
+  if(!t)return"";
+  return t.split(" ").filter(w=>w.trim()!=="").map(w=>{
+    const[word,p]=suffixPunct(w);
+    if(VOWELS.has(word[0]))return word+"way"+p;
+    const fv=[...word].findIndex(c=>VOWELS.has(c));
+    const pre=fv===-1?word:word.slice(fv)+word.slice(0,fv);
+    return pre+"ay"+p;
+  }).join(" ")}
+
+const scrambleCache=new Map();
+function toScramble(t){
+  if(!t)return"";
+  return t.split(" ").filter(w=>w.trim()!=="").map(w=>{
+    if(w.length<=3)return w;
+    if(w[1]===w[2]&&w.length===4)return w;
+    const[san,p]=suffixPunct(w);
+    if(scrambleCache.has(san))return scrambleCache.get(san)+p;
+    const interior=stripPunct(san.slice(1,-1)).split("").sort(()=>Math.random()-0.5).join("");
+    const out=san[0]+interior+san[san.length-1];
+    scrambleCache.set(san,out);
+    return out+p;
+  }).join(" ")}
+
+// utf-8 safe base64 (original btoa broke on non-ascii)
+function toBase64(t){
+  const bytes=new TextEncoder().encode(t);
+  let bin="";for(const b of bytes)bin+=String.fromCharCode(b);
+  return btoa(bin)}
+
+function toBinary(t){
+  return t.split("").map(c=>c.charCodeAt(0).toString(2).padStart(8,"0")).join(" ")}
+
+const CIRCLE={a:["\u{1F150}","\u{1F170}️"],b:["\u{1F151}","\u{1F171}️"],c:["\u{1F152}","\u{1F1F2}"],d:["\u{1F153}","\u{1F1F3}"],e:["\u{1F154}","\u{1F1F4}"],f:["\u{1F155}","\u{1F1F5}"],g:["\u{1F156}","\u{1F1F6}"],h:["\u{1F157}","\u{1F1F7}"],i:["\u{1F158}","\u{1F1F8}"],j:["\u{1F159}","\u{1F1F9}"],k:["\u{1F15A}","\u{1F1FA}"],l:["\u{1F15B}","\u{1F1FB}"],m:["\u{1F15C}","\u{1F1FC}"],n:["\u{1F15D}","\u{1F1FD}"],o:["\u{1F15E}","\u{1F17E}️"],p:["\u{1F15F}","\u{1F17F}️"],q:["\u{1F160}","\u{1F1E0}"],r:["\u{1F161}","\u{1F1E1}"],s:["\u{1F162}","\u{1F1E2}"],t:["\u{1F163}","\u{1F1E3}"],u:["\u{1F164}","\u{1F1E4}"],v:["\u{1F165}","\u{1F1E5}"],w:["\u{1F166}","\u{1F1E6}"],x:["\u{1F167}","\u{1F1E7}"],y:["\u{1F168}","\u{1F1E8}"],z:["\u{1F169}","\u{1F1E9}"]};
+const SQUARE={a:["\u{1F130}"],b:["\u{1F131}"],c:["\u{1F132}"],d:["\u{1F133}"],e:["\u{1F134}"],f:["\u{1F135}"],g:["\u{1F136}"],h:["\u{1F137}"],i:["\u{1F138}"],j:["\u{1F139}"],k:["\u{1F13A}"],l:["\u{1F13B}"],m:["\u{1F13C}"],n:["\u{1F13D}"],o:["\u{1F13E}"],p:["\u{1F13F}"],q:["\u{1F140}"],r:["\u{1F141}"],s:["\u{1F142}"],t:["\u{1F143}"],u:["\u{1F144}"],v:["\u{1F145}"],w:["\u{1F146}"],x:["\u{1F147}"],y:["\u{1F148}"],z:["\u{1F149}"]};
+const pick=a=>a[Math.floor(Math.random()*a.length)];
+function toEmoji(t){return t.toLowerCase().split("").map(c=>{
+  const d=Math.random()<0.5?CIRCLE:SQUARE;return d[c]?pick(d[c]):c}).join("")}
+
+const TRANSFORMS=[
+  {id:"leet",name:"Leetspeak",hint:"a4 e3 i1 o0 s5",fn:toLeet},
+  {id:"rot13",name:"ROT13",hint:"caesar +13",fn:rot13},
+  {id:"base64",name:"Base64",hint:"utf-8 safe",fn:toBase64},
+  {id:"binary",name:"Binary",hint:"8-bit ascii",fn:toBinary},
+  {id:"pig",name:"Pig Latin",hint:"",fn:toPigLatin},
+  {id:"scramble",name:"Scramble",hint:"keep first/last",fn:toScramble},
+  {id:"emoji",name:"Emoji",hint:"enclosed alnum",fn:toEmoji},
+];
+
+// ---- build cards ----
+const grid=document.getElementById("grid");
+const outs={};
+for(const t of TRANSFORMS){
+  const card=document.createElement("div");card.className="card";
+  const h=document.createElement("h2");
+  h.innerHTML=`<span>${t.name}${t.hint?` <span class="k">${t.hint}</span>`:""}</span>`;
+  const btn=document.createElement("button");btn.className="copy";btn.textContent="copy";
+  const out=document.createElement("div");out.className="out";
+  btn.onclick=()=>{navigator.clipboard.writeText(out.textContent||"").then(()=>{
+    btn.textContent="copied";btn.classList.add("ok");
+    setTimeout(()=>{btn.textContent="copy";btn.classList.remove("ok")},1400)})};
+  h.appendChild(btn);card.appendChild(h);card.appendChild(out);grid.appendChild(card);
+  outs[t.id]=out;
+}
+
+// ---- counts + render ----
+const src=document.getElementById("src");
+const cChars=document.getElementById("cChars"),cWords=document.getElementById("cWords"),cBytes=document.getElementById("cBytes");
+function renderTransforms(){
+  const t=src.value;
+  cChars.textContent=[...t].length;
+  cWords.textContent=t.trim()?t.trim().split(/\s+/).length:0;
+  cBytes.textContent=new TextEncoder().encode(t).length;
+  for(const tr of TRANSFORMS){try{outs[tr.id].textContent=tr.fn(t)}catch(e){outs[tr.id].textContent=""}}
+}
+
+// ---- tokenizer (js-tiktoken via CDN) ----
+const MODELS=["gpt-4o","gpt-4o-mini","gpt-4-turbo","gpt-4","gpt-3.5-turbo","text-embedding-ada-002","gpt2"];
+const modelSel=document.getElementById("model");
+for(const m of MODELS){const o=document.createElement("option");o.value=o.textContent=m;modelSel.appendChild(o)}
+const tokBox=document.getElementById("tokens"),tokN=document.getElementById("tokN"),tnote=document.getElementById("tnote");
+let tk=null,encoder=null;
+const SHADES=["rgba(90,209,139,.22)","rgba(74,163,255,.22)","rgba(224,183,86,.22)","rgba(214,110,214,.22)"];
+
+async function loadTk(){
+  try{
+    tk=await import("https://esm.sh/js-tiktoken@1.0.12");
+    setEncoder(modelSel.value);
+    tnote.textContent="";
+    renderTokens();
+  }catch(e){
+    tnote.textContent="Token view needs network to load the tokenizer (js-tiktoken CDN). Transforms still work offline.";
+  }
+}
+function setEncoder(model){
+  if(!tk)return;
+  try{encoder=tk.getEncoding(tk.getEncodingNameForModel(model))}
+  catch(e){encoder=tk.getEncoding("o200k_base")}
+}
+function renderTokens(){
+  if(!encoder){tokBox.textContent="";return}
+  const text=src.value;
+  const ids=encoder.encode(text);
+  tokN.textContent=ids.length;
+  const frag=document.createDocumentFragment();
+  ids.forEach((id,i)=>{
+    let piece=encoder.decode([id]);
+    const span=document.createElement("span");span.className="t";
+    span.style.background=SHADES[i%SHADES.length];
+    piece=piece.replace(/\n/g,"⏎\n");
+    span.textContent=piece===""?"▫":piece;
+    frag.appendChild(span);
+  });
+  tokBox.textContent="";tokBox.appendChild(frag);
+}
+
+modelSel.onchange=()=>{setEncoder(modelSel.value);renderTokens()};
+src.addEventListener("input",()=>{renderTransforms();renderTokens()});
+renderTransforms();
+loadTk();
+</script>
+</body>
+</html>
