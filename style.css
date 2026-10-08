@@ -221,3 +221,58 @@ footer { border-top: 1px solid var(--rule); margin-top: 4rem; padding: 2.5rem 0 
 
 ::selection { background: var(--purple); color: var(--paper); }
 :focus-visible { outline: 2px solid var(--purple); outline-offset: 2px; border-radius: 2px; }
+
+/* ---------- divisions (parent landing doors) ---------- */
+.door { display:block; text-decoration:none; color:inherit; padding:2rem 0; border-top:1px solid var(--rule); transition:padding-left .18s; }
+.door:first-of-type { border-top:1px solid var(--rule); }
+.door:hover { padding-left:.5rem; }
+.door__meta { font-family:var(--mono); font-size:.74rem; letter-spacing:.08em; text-transform:uppercase; color:var(--purple); }
+.door h3 { font-size:clamp(1.6rem,4vw,2.3rem); font-weight:800; margin:.5rem 0; }
+.door p { color:var(--slate); max-width:60ch; }
+.door__go { font-family:var(--mono); font-size:.78rem; color:var(--slate); margin-top:.9rem; display:inline-block; }
+.door:hover .door__go { color:var(--purple); }
+
+/* ---------- security division ---------- */
+.security-hero { display:grid; grid-template-columns:1fr; gap:2.5rem; align-items:center; }
+.security-mark { width:100%; max-width:280px; height:auto; display:block; margin:0 auto; justify-self:center; }
+.btn {
+  display:inline-block; font-family:var(--mono); font-size:.82rem; letter-spacing:.04em;
+  text-transform:uppercase; color:var(--paper); background:var(--purple);
+  border-radius:8px; padding:.85rem 1.4rem; text-decoration:none; transition:opacity .15s;
+}
+.btn:hover { opacity:.88; }
+@media (min-width:760px){ .security-hero { grid-template-columns:1fr 280px; } }
+
+/* ---------- security: service framing ---------- */
+.tags { display:flex; flex-wrap:wrap; gap:.6rem 1.4rem; margin-top:1.5rem; }
+.tags span { font-family:var(--mono); font-size:.74rem; letter-spacing:.08em; text-transform:uppercase; color:var(--slate); }
+.tags span::before { content:"\25B8 "; color:var(--purple); }
+.cta-row { display:flex; flex-wrap:wrap; gap:1rem 1.5rem; align-items:center; margin-top:2rem; }
+.cta-row a.textlink { font-family:var(--mono); font-size:.8rem; letter-spacing:.04em; text-transform:uppercase; color:var(--slate); text-decoration:none; }
+.cta-row a.textlink:hover { color:var(--purple); }
+
+/* ---------- security: threat blocks (attack + damage) ---------- */
+.threat { display:grid; grid-template-columns:auto 1fr; gap:1.25rem; padding:1.75rem 0; border-top:1px solid var(--rule); }
+.threat:first-child { border-top:0; }
+.threat__n { font-family:var(--mono); font-size:.8rem; color:var(--purple); padding-top:.2rem; }
+.threat h3 { font-size:1.2rem; font-weight:600; margin-bottom:.4rem; }
+.threat p { color:var(--slate); max-width:62ch; }
+.threat__dmg { margin-top:.9rem; padding:.8rem 1rem; border-left:2px solid var(--purple); background:var(--surface); border-radius:0 6px 6px 0; max-width:62ch; }
+.threat__dmg b { font-family:var(--mono); font-size:.66rem; letter-spacing:.12em; text-transform:uppercase; color:var(--purple); display:block; margin-bottom:.3rem; }
+.threat__dmg span { color:var(--ink); font-size:.97rem; }
+
+/* ---------- pricing packages ---------- */
+.pkgs { display:grid; grid-template-columns:1fr; gap:1.25rem; margin-top:1rem; }
+.pkg { border:1px solid var(--rule); border-radius:10px; background:var(--surface); padding:1.6rem 1.5rem; display:flex; flex-direction:column; }
+.pkg--feature { border-color:var(--purple); }
+.pkg__tag { font-family:var(--mono); font-size:.66rem; letter-spacing:.12em; text-transform:uppercase; color:var(--purple); margin-bottom:.5rem; }
+.pkg__name { font-family:var(--display); font-weight:700; font-size:1.3rem; }
+.pkg__price { font-family:var(--mono); font-size:1.5rem; color:var(--ink); margin:.7rem 0 .1rem; }
+.pkg__price small { font-size:.8rem; color:var(--slate); font-weight:400; }
+.pkg__meta { font-family:var(--mono); font-size:.74rem; color:var(--slate); margin-bottom:1.1rem; }
+.pkg ul { list-style:none; margin:.3rem 0 1.5rem; }
+.pkg li { padding:.5rem 0; border-top:1px solid var(--rule); color:var(--slate); font-size:.94rem; display:grid; grid-template-columns:auto 1fr; gap:.6rem; }
+.pkg li::before { content:"+"; color:var(--purple); font-family:var(--mono); }
+.pkg .btn { margin-top:auto; text-align:center; }
+@media (min-width:860px){ .pkgs { grid-template-columns:repeat(3,1fr); align-items:stretch; } }
+.record__v.prose { word-break:normal; overflow-wrap:break-word; }

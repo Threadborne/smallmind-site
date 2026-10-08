@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Small Mind Security</title>
+<meta name="description" content="Small Mind Security is an adversarial testing practice for companies shipping LLM and AI-agent features. Fixed-scope, fixed-price assessments that find what breaks before an attacker does.">
+<link rel="canonical" href="https://smallmind.net/security.html">
+<meta property="og:title" content="Small Mind Security">
+<meta property="og:description" content="We break your AI before someone else does. Fixed-scope, fixed-price adversarial testing for LLM and agent systems.">
+<meta property="og:url" content="https://smallmind.net/security.html">
+<meta property="og:type" content="website">
+<link rel="icon" href="assets/small-mind-security-transparent-kit/favicon.ico" sizes="any">
+<link rel="icon" type="image/png" sizes="32x32" href="assets/small-mind-security-transparent-kit/favicon-32x32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="assets/small-mind-security-transparent-kit/favicon-16x16.png">
+<link rel="apple-touch-icon" href="assets/small-mind-security-transparent-kit/apple-touch-icon.png">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<header class="wrap masthead">
+  <a class="brand" href="/">
+    <span class="brand__mark" role="img" aria-label="Small Mind"></span>
+    <span class="brand__word"><span>SMALL</span> <b>MIND</b></span>
+  </a>
+  <nav class="nav">
+    <a href="/security.html" aria-current="page">Security</a>
+    <a href="/pricing.html">Packages</a>
+    <a href="/research.html">Research</a>
+  </nav>
+</header>
+
+<main class="wrap">
+
+  <section class="hero security-hero">
+    <div>
+      <p class="eyebrow">Small Mind Security</p>
+      <h1>We break your AI before someone else does.</h1>
+      <p class="lede">
+        An adversarial testing practice for companies shipping LLM and AI-agent features.
+        You pick a package, we attack your system the way a real adversary would, and you
+        get back a report of exactly what broke and how to close it.
+        <span class="quiet">Your traditional security vendor tests your network. Nobody's testing the model.</span>
+      </p>
+      <div class="tags">
+        <span>Fixed scope</span>
+        <span>Fixed price</span>
+        <span>Report in one to two weeks</span>
+      </div>
+      <div class="cta-row">
+        <a class="btn" href="/pricing.html">See packages &amp; pricing</a>
+        <a class="textlink" href="mailto:security@smallmind.net?subject=Assessment%20request">Or email us &rarr;</a>
+      </div>
+    </div>
+    <img class="security-mark" src="assets/small-mind-security-transparent-kit/logo-transparent.png" alt="Small Mind Security" width="300" height="300" loading="lazy">
+  </section>
+
+  <section class="section-rule">
+    <h2 class="section-title">The attack surface</h2>
+    <p class="narrow" style="color:var(--slate); margin-bottom:2rem">What we go after, and what it costs you when it's left open. Every one of these is something we have made real models actually do.</p>
+    <div class="narrow">
+
+      <div class="threat">
+        <div class="threat__n">01</div>
+        <div>
+          <h3>Prompt injection</h3>
+          <p>Direct and indirect. Instructions smuggled through a user's message or the content your model reads, written to override what you told it to do.</p>
+          <div class="threat__dmg"><b>The damage</b><span>A support agent that reads inbound email can be instructed, by the email itself, to pull another customer's records and forward them. The model can't tell your rules from the sender's text.</span></div>
+        </div>
+      </div>
+
+      <div class="threat">
+        <div class="threat__n">02</div>
+        <div>
+          <h3>Jailbreak and policy bypass</h3>
+          <p>Walking the model past its own guardrails into output it was built to refuse.</p>
+          <div class="threat__dmg"><b>The damage</b><span>A few lines of setup and your branded assistant produces content you would never put your name on, screenshotted with your logo attached and posted to a timeline.</span></div>
+        </div>
+      </div>
+
+      <div class="threat">
+        <div class="threat__n">03</div>
+        <div>
+          <h3>System-prompt and secret leakage</h3>
+          <p>Extracting the hidden instructions that run your product, and whatever got left sitting next to them.</p>
+          <div class="threat__dmg"><b>The damage</b><span>One well-formed request returns your system prompt, the proprietary rules behind your product, and any API key or internal URL embedded alongside them.</span></div>
+        </div>
+      </div>
+
+      <div class="threat">
+        <div class="threat__n">04</div>
+        <div>
+          <h3>Data and PII exfiltration</h3>
+          <p>Coaxing the model into surfacing data it was never meant to show the person asking.</p>
+          <div class="threat__dmg"><b>The damage</b><span>A retrieval assistant answers an innocent-looking question with another client's contract terms. Now it is a privacy incident with a compliance clock running on it.</span></div>
+        </div>
+      </div>
+
+      <div class="threat">
+        <div class="threat__n">05</div>
+        <div>
+          <h3>Tool and agent abuse</h3>
+          <p>Turning an agent's own tools against you, and poisoning the content it retrieves so a later action does the attacker's bidding.</p>
+          <div class="threat__dmg"><b>The damage</b><span>An agent that can send email, move money, or write to your database gets steered into doing exactly that, for someone who does not work for you.</span></div>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <section class="section-rule">
+    <h2 class="section-title">Every engagement</h2>
+    <p class="narrow" style="color:var(--slate); margin-bottom:1.5rem">No hourly billing, no scope creep. You know the price and the deliverable before we start.</p>
+    <div class="record" role="group" aria-label="Engagement shape">
+      <div class="record__row">
+        <div class="record__cell">
+          <div class="record__k">Scope</div>
+          <div class="record__v prose">One AI feature, fixed and agreed up front</div>
+        </div>
+        <div class="record__cell">
+          <div class="record__k">Timeline</div>
+          <div class="record__v prose">About one to two weeks</div>
+        </div>
+        <div class="record__cell">
+          <div class="record__k">Deliverable</div>
+          <div class="record__v prose pass">A findings report, plus a retest after you patch</div>
+        </div>
+      </div>
+    </div>
+    <p style="margin-top:1.5rem"><a href="/pricing.html">See the packages and pricing &rarr;</a></p>
+  </section>
+
+  <section class="section-rule">
+    <h2 class="section-title">Why us</h2>
+    <div class="principles narrow">
+      <div class="principle">
+        <div class="principle__n">01</div>
+        <div>
+          <h3>We live on the attack side</h3>
+          <p>We red-team frontier models adversarially every day, including on public red-team platforms. Breaking AI is our standing practice, not a service we bolted on.</p>
+        </div>
+      </div>
+      <div class="principle">
+        <div class="principle__n">02</div>
+        <div>
+          <h3>We know the model, not just the network</h3>
+          <p>Most security vendors understand web apps and infrastructure. We understand how a language model fails from the inside: the context window, the retrieval layer, the tool-calling layer, and where a guardrail actually holds versus where it is theater.</p>
+        </div>
+      </div>
+      <div class="principle">
+        <div class="principle__n">03</div>
+        <div>
+          <h3>Our rigor is on the record</h3>
+          <p>Our work on AI evaluation integrity has been referenced in independent model-calibration research. The same standard, pointed at your system. <a href="/research.html">See the research &rarr;</a></p>
+        </div>
+      </div>
+      <div class="principle">
+        <div class="principle__n">04</div>
+        <div>
+          <h3>We stay inside the lines</h3>
+          <p>We test only what you own and authorize, under written scope, and we never touch production without your sign-off. The report is yours, and the findings stay between us.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section-rule">
+    <div class="narrow">
+      <h2 class="section-title">Find out what breaks.</h2>
+      <p style="color:var(--slate); margin-bottom:2rem">Pick a package, or tell us what you have shipped and we will scope it with you.</p>
+      <div class="cta-row">
+        <a class="btn" href="/pricing.html">See packages &amp; pricing</a>
+        <a class="textlink" href="mailto:security@smallmind.net?subject=Assessment%20request">security@smallmind.net</a>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<footer class="wrap">
+  <div class="foot">
+    <div class="foot__brand">SMALL MIND SECURITY, © 2026</div>
+    <div class="foot__links">
+      <a href="/pricing.html">Packages</a>
+      <a href="/research.html">Research</a>
+      <a href="https://github.com/Threadborne">Receipts</a>
+    </div>
+  </div>
+</footer>
+
+</body>
+</html>
